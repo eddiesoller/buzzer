@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: buzzer
+      POSTGRES_USER: buzzer
+      POSTGRES_PASSWORD: buzzer_secret
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U buzzer"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  buzzer:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: buzzer
+      POSTGRES_USER: buzzer
+      POSTGRES_PASSWORD: buzzer_secret
+      DRY_RUN: ${DRY_RUN:-false}
+      SINGLE_RUN: ${SINGLE_RUN:-false}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      POLL_INTERVAL_MINUTES: ${POLL_INTERVAL_MINUTES:-2}
+      TWITTER_APP_KEY: ${TWITTER_APP_KEY:-}
+      TWITTER_APP_SECRET: ${TWITTER_APP_SECRET:-}
+      TWITTER_ACCESS_TOKEN: ${TWITTER_ACCESS_TOKEN:-}
+      TWITTER_ACCESS_SECRET: ${TWITTER_ACCESS_SECRET:-}
+      BUZZER_HASHTAG: ${BUZZER_HASHTAG:-#MarchMadness}
+      HEALTHCHECK_URL: ${HEALTHCHECK_URL:-}
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
