@@ -37,14 +37,35 @@ async function main() {
   const store = new StateStore(db);
 
   const notifiers: Notifier[] = [new ConsoleNotifier(logger)];
+  let twitterNotifier: TwitterNotifier | undefined;
 
-  if (!config.dryRun && config.twitter.appKey) {
+  if (config.twitter.appKey) {
     try {
-      notifiers.push(new TwitterNotifier(logger, config));
-      logger.info('Twitter notifier enabled');
+      twitterNotifier = new TwitterNotifier(logger, config);
     } catch (err) {
       logger.warn({ err }, 'Twitter notifier disabled — check credentials');
     }
+  }
+
+  if (config.verifyCredentials) {
+    if (!twitterNotifier) {
+      logger.error('Cannot verify credentials — Twitter credentials not configured');
+      process.exit(1);
+    }
+    try {
+      const { id, username } = await twitterNotifier.verifyCredentials();
+      logger.info({ id, username }, `✓ Twitter credentials valid — authenticated as @${username}`);
+    } catch (err) {
+      logger.error({ err }, '✗ Twitter credentials invalid');
+      process.exit(1);
+    }
+    await closeDb();
+    return;
+  }
+
+  if (twitterNotifier && !config.dryRun) {
+    notifiers.push(twitterNotifier);
+    logger.info('Twitter notifier enabled');
   } else if (config.dryRun) {
     logger.info('DRY RUN mode — tweets will not be posted');
   }

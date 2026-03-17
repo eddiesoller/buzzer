@@ -28,6 +28,11 @@ export class TwitterNotifier implements Notifier {
     });
   }
 
+  async verifyCredentials(): Promise<{ id: string; username: string }> {
+    const { data } = await this.client.v2.me();
+    return { id: data.id, username: data.username };
+  }
+
   async send(alert: Alert, tweetText: string): Promise<void> {
     try {
       const result = await this.client.v2.tweet(tweetText);
