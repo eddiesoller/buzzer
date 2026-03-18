@@ -16,7 +16,7 @@ export class StateStore {
 
     if (!row) return null;
 
-    return JSON.parse(row.rule_data as unknown as string) as Game;
+    return row.rule_data as unknown as Game;
   }
 
   /** Save/update a game snapshot */
