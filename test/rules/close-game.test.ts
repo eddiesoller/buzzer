@@ -44,4 +44,40 @@ describe('CloseGameRule', () => {
     const alerts = rule.evaluate(game);
     expect(alerts[0]!.priority).toBe('high');
   });
+
+  describe('close final', () => {
+    it('fires when finished in regulation with margin ≤ 5', () => {
+      const game = makeGame({ status: 'post', period: 2,
+        homeTeam: { ...makeGame().homeTeam, score: 83 },
+        awayTeam: { ...makeGame().awayTeam, score: 81 } });
+      const alerts = rule.evaluate(game);
+      expect(alerts).toHaveLength(1);
+      expect(alerts[0]!.id).toContain('close-game-final');
+      expect(alerts[0]!.priority).toBe('high');
+    });
+
+    it('does not fire when finished in OT', () => {
+      const game = makeGame({ status: 'post', period: 3,
+        homeTeam: { ...makeGame().homeTeam, score: 85 },
+        awayTeam: { ...makeGame().awayTeam, score: 83 } });
+      expect(rule.evaluate(game)).toHaveLength(0);
+    });
+
+    it('does not fire when margin > 5 at final', () => {
+      const game = makeGame({ status: 'post', period: 2,
+        homeTeam: { ...makeGame().homeTeam, score: 90 },
+        awayTeam: { ...makeGame().awayTeam, score: 83 } });
+      expect(rule.evaluate(game)).toHaveLength(0);
+    });
+
+    it('has a different id from the live close-game alert', () => {
+      const liveGame = makeGame({ period: 2, clockSeconds: 120,
+        homeTeam: { ...makeGame().homeTeam, score: 65 },
+        awayTeam: { ...makeGame().awayTeam, score: 63 } });
+      const finalGame = makeGame({ status: 'post', period: 2,
+        homeTeam: { ...makeGame().homeTeam, score: 65 },
+        awayTeam: { ...makeGame().awayTeam, score: 63 } });
+      expect(rule.evaluate(liveGame)[0]!.id).not.toBe(rule.evaluate(finalGame)[0]!.id);
+    });
+  });
 });
