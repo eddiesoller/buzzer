@@ -24,6 +24,7 @@ import { FiveByFiveRule } from '../src/rules/five-by-five.js';
 import { GooseEggRule } from '../src/rules/goose-egg.js';
 import { ScoringRunRule } from '../src/rules/scoring-run.js';
 import { ComebackRule } from '../src/rules/comeback.js';
+import { BigShotRule } from '../src/rules/big-shot.js';
 import { AlertRule } from '../src/rules/rule.js';
 import { formatTweet } from '../src/formatters/tweet.js';
 import { Game } from '../src/types/game.js';
@@ -43,6 +44,7 @@ const SNAPSHOT_RULES: AlertRule[] = [
   new GooseEggRule(),
 ];
 
+const bigShotRule = new BigShotRule();
 const SKIPPED_RULES = ['close-game', 'upset-brewing'];
 
 async function sleep(ms: number) {
@@ -106,6 +108,19 @@ async function replay(year: string) {
           }
         } catch (err) {
           console.error(`  [${rule.name}] Error: ${err}`);
+        }
+      }
+
+      // Play-level rules
+      for (const play of enriched.plays ?? []) {
+        try {
+          const alert = bigShotRule.evaluate(play, enriched);
+          if (alert && !firedIds.has(alert.id)) {
+            firedIds.add(alert.id);
+            gameAlerts.push(alert);
+          }
+        } catch (err) {
+          console.error(`  [big-shot] Error: ${err}`);
         }
       }
 

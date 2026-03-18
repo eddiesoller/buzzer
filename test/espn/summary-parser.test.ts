@@ -189,6 +189,44 @@ describe('mergeSummaryIntoGame', () => {
     expect(p2!.awayScore).toBe(3);
   });
 
+  it('parses sequenceNumber as integer', () => {
+    const game = makeGame();
+    const result = mergeSummaryIntoGame(game, makeSummaryWithPlays());
+    expect(result.plays![0]!.sequenceNumber).toBe(1);
+    expect(result.plays![1]!.sequenceNumber).toBe(2);
+    expect(result.plays![2]!.sequenceNumber).toBe(3);
+  });
+
+  it('parses text field', () => {
+    const game = makeGame();
+    const result = mergeSummaryIntoGame(game, makeSummaryWithPlays());
+    expect(result.plays![0]!.text).toBe('Jump ball');
+    expect(result.plays![1]!.text).toBe('Made layup');
+  });
+
+  it('includes coordinate field when present', () => {
+    const game = makeGame();
+    const summaryWithCoord: EspnSummaryResponse = {
+      boxscore: { teams: [], players: [] },
+      plays: [
+        {
+          id: '1',
+          sequenceNumber: '1',
+          scoringPlay: true,
+          homeScore: 3,
+          awayScore: 0,
+          period: { number: 1, displayValue: '1st Half' },
+          clock: { displayValue: '19:00' },
+          team: { id: 'home' },
+          text: '45-foot Three Point Jumper',
+          coordinate: { x: 25, y: 45 },
+        },
+      ],
+    };
+    const result = mergeSummaryIntoGame(game, summaryWithCoord);
+    expect(result.plays![0]!.coordinate).toEqual({ x: 25, y: 45 });
+  });
+
   it('returns empty plays array when summary has no plays', () => {
     const game = makeGame();
     const result = mergeSummaryIntoGame(game, makeSummary());

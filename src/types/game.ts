@@ -39,6 +39,9 @@ export interface Play {
   scoringPlay: boolean;
   period: number;
   clockSeconds: number;
+  sequenceNumber: number;
+  text: string;
+  coordinate?: { x: number; y: number };
 }
 
 export type GameStatus = 'pre' | 'in' | 'post';
@@ -57,6 +60,8 @@ export interface Game {
   players?: PlayerStats[];
   /** Play-by-play — absent if summary fetch failed */
   plays?: Play[];
+  /** Sequence number of last processed play — used to avoid re-processing plays across polls */
+  lastProcessedSeq?: number;
   startTime: string;
   venue?: string;
 }

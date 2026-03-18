@@ -94,6 +94,7 @@ export interface EspnPlay {
   clock: { displayValue: string };
   team?: { id: string };
   text: string;
+  coordinate?: { x: number; y: number };
 }
 
 export interface EspnHeader {

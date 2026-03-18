@@ -29,6 +29,9 @@ export function mergeSummaryIntoGame(game: Game, summary: EspnSummaryResponse): 
     scoringPlay: p.scoringPlay,
     period: p.period.number,
     clockSeconds: parseDisplayClock(p.clock.displayValue),
+    sequenceNumber: parseInt(p.sequenceNumber, 10),
+    text: p.text,
+    coordinate: p.coordinate,
   }));
 
   return { ...game, players, plays };

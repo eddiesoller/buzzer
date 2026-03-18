@@ -16,7 +16,6 @@
     "axios": "^1.6.7",
     "dotenv": "^16.4.5",
     "kysely": "^0.27.3",
-    "node-cron": "^3.0.3",
     "pg": "^8.11.3",
     "pino": "^8.19.0",
     "pino-pretty": "^11.0.0",
@@ -25,7 +24,6 @@
   },
   "devDependencies": {
     "@types/node": "^20.11.24",
-    "@types/node-cron": "^3.0.11",
     "@types/pg": "^8.11.2",
     "tsx": "^4.7.1",
     "typescript": "^5.3.3",

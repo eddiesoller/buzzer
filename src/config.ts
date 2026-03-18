@@ -21,6 +21,7 @@ const configSchema = z.object({
   singleRun: z.boolean().default(false),
   logLevel: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
   pollIntervalMinutes: z.coerce.number().min(1).max(60).default(2),
+  activePollIntervalSeconds: z.coerce.number().min(5).max(300).default(30),
 });
 
 export type Config = z.infer<typeof configSchema>;
@@ -46,6 +47,7 @@ export function loadConfig(): Config {
     singleRun: process.env['SINGLE_RUN'] === 'true' || process.argv.includes('--single-run'),
     logLevel: process.env['LOG_LEVEL'],
     pollIntervalMinutes: getArgValue('--poll-interval') ?? process.env['POLL_INTERVAL_MINUTES'],
+    activePollIntervalSeconds: process.env['ACTIVE_POLL_INTERVAL_SECONDS'],
   };
 
   return configSchema.parse(raw);

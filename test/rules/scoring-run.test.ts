@@ -80,6 +80,36 @@ describe('ScoringRunRule', () => {
     expect(rule.evaluate(game)).toHaveLength(0);
   });
 
+  it('uses threshold-based alert ID — 17-run fires with threshold 15', () => {
+    const plays = [
+      makePlay({ scoringPlay: true, teamId: 'away', homeScore: 0, awayScore: 10 }),
+      makePlay({ scoringPlay: true, teamId: 'home', homeScore: 17, awayScore: 10 }),
+    ];
+    const game = makeGame({
+      homeTeam: { id: 'home', name: 'Home', shortName: 'Home', abbreviation: 'HME', score: 17 },
+      awayTeam: { id: 'away', name: 'Away', shortName: 'Away', abbreviation: 'AWY', score: 10 },
+      plays,
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.id).toMatch(/:15$/);
+  });
+
+  it('uses threshold-based alert ID — 20-run fires with threshold 20', () => {
+    const plays = [
+      makePlay({ scoringPlay: true, teamId: 'away', homeScore: 0, awayScore: 10 }),
+      makePlay({ scoringPlay: true, teamId: 'home', homeScore: 20, awayScore: 10 }),
+    ];
+    const game = makeGame({
+      homeTeam: { id: 'home', name: 'Home', shortName: 'Home', abbreviation: 'HME', score: 20 },
+      awayTeam: { id: 'away', name: 'Away', shortName: 'Away', abbreviation: 'AWY', score: 10 },
+      plays,
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.id).toMatch(/:20$/);
+  });
+
   it('fires for finished games', () => {
     const plays = [
       makePlay({ scoringPlay: true, teamId: 'away', homeScore: 0, awayScore: 10 }),

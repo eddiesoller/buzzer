@@ -18,7 +18,7 @@ export class ScoringRunRule implements AlertRule {
 
     if (homeRun >= RUN_THRESHOLD) {
       alerts.push({
-        id: makeAlertId(this.name, game.id, game.homeTeam.id, String(homeRun)),
+        id: makeAlertId(this.name, game.id, game.homeTeam.id, String(Math.floor(homeRun / 5) * 5)),
         rule: this.name,
         gameId: game.id,
         headline: `${game.homeTeam.shortName} on a ${homeRun}-0 scoring run!`,
@@ -30,7 +30,7 @@ export class ScoringRunRule implements AlertRule {
 
     if (awayRun >= RUN_THRESHOLD) {
       alerts.push({
-        id: makeAlertId(this.name, game.id, game.awayTeam.id, String(awayRun)),
+        id: makeAlertId(this.name, game.id, game.awayTeam.id, String(Math.floor(awayRun / 5) * 5)),
         rule: this.name,
         gameId: game.id,
         headline: `${game.awayTeam.shortName} on a ${awayRun}-0 scoring run!`,
