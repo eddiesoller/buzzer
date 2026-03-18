@@ -130,12 +130,10 @@ export class Runner {
       );
     }
 
-    // Stop watchers for any finished games (watcher stops itself too, this is a safety cleanup)
-    for (const game of games) {
-      if (isFinished(game) && this.watchers.has(game.id)) {
-        this.stopWatcher(game.id);
-      }
-    }
+    // Note: do NOT stop watchers here for finished games. The game watcher self-terminates
+    // after its final processGame() call, which ensures close-game-final and other end-of-game
+    // rules are evaluated before the watcher shuts down. Stopping from here would evict the game
+    // from the cache, causing pollGame() to return early without evaluating final rules.
 
     await this.pingHealthcheck();
   }
@@ -331,16 +329,23 @@ export class Runner {
       if (this.dryRun) {
         this.logger.info({ alertId: alert.id, tweetText }, '[DRY RUN] Would send alert');
       } else {
+        let atLeastOneSent = this.notifiers.length === 0;
         await Promise.allSettled(
           this.notifiers.map(async (notifier) => {
             try {
               await notifier.send(alert, tweetText);
+              atLeastOneSent = true;
             } catch (err) {
               this.logger.error({ err, alertId: alert.id }, 'Notifier error');
             }
           })
         );
-        await this.store.markAlertFired(alert);
+        // Only mark fired if at least one notifier succeeded — failed sends will retry next poll
+        if (atLeastOneSent) {
+          await this.store.markAlertFired(alert);
+        } else {
+          this.logger.warn({ alertId: alert.id }, 'All notifiers failed — alert will retry next poll');
+        }
       }
     }
 
