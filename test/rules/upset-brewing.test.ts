@@ -1,25 +1,25 @@
 import { describe, it, expect } from 'vitest';
-import { UpsetRule } from '../../src/rules/upset.js';
+import { UpsetBrewingRule } from '../../src/rules/upset-brewing.js';
 import { makeGame, makeTeam } from './helpers.js';
 
-const rule = new UpsetRule();
+const rule = new UpsetBrewingRule();
 
-describe('UpsetRule', () => {
+describe('UpsetBrewingRule', () => {
   const highSeed = makeTeam({ id: 'high', seed: 1, score: 55 });
   const lowSeed = makeTeam({ id: 'low', seed: 12, score: 60 });
 
-  it('fires upset-brewing when underdog leads in 2nd half', () => {
+  it('fires when underdog leads in 2nd half', () => {
     const game = makeGame({ period: 2, status: 'in',
       homeTeam: lowSeed, awayTeam: highSeed });
     const alerts = rule.evaluate(game);
-    expect(alerts.some((a) => a.id.startsWith('upset-brewing'))).toBe(true);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.id).toBe('upset-brewing:game1');
   });
 
-  it('fires upset-confirmed when underdog wins', () => {
+  it('does not fire for a finished game', () => {
     const game = makeGame({ status: 'post',
       homeTeam: lowSeed, awayTeam: highSeed });
-    const alerts = rule.evaluate(game);
-    expect(alerts.some((a) => a.id.startsWith('upset-confirmed'))).toBe(true);
+    expect(rule.evaluate(game)).toHaveLength(0);
   });
 
   it('fires for a 1-seed difference (e.g. #8 leads #7)', () => {
@@ -28,7 +28,7 @@ describe('UpsetRule', () => {
       awayTeam: makeTeam({ id: 'away', seed: 7, score: 55 }),
       period: 2, status: 'in',
     });
-    expect(rule.evaluate(game).some((a) => a.id.startsWith('upset-brewing'))).toBe(true);
+    expect(rule.evaluate(game)).toHaveLength(1);
   });
 
   it('does not fire if seeds are equal', () => {
@@ -49,6 +49,12 @@ describe('UpsetRule', () => {
 
   it('does not fire when no seeds present', () => {
     const game = makeGame({ period: 2, status: 'in' });
+    expect(rule.evaluate(game)).toHaveLength(0);
+  });
+
+  it('does not fire in 1st half', () => {
+    const game = makeGame({ period: 1, status: 'in',
+      homeTeam: lowSeed, awayTeam: highSeed });
     expect(rule.evaluate(game)).toHaveLength(0);
   });
 });

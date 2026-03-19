@@ -34,18 +34,11 @@ describe('OvertimeRule', () => {
     expect(rule.evaluate(ot1)[0]!.id).not.toBe(rule.evaluate(ot2)[0]!.id);
   });
 
-  it('fires final alert when game ends in OT', () => {
-    const game = makeGame({ status: 'post', period: 3, homeTeam: { ...makeGame().homeTeam, score: 72 }, awayTeam: { ...makeGame().awayTeam, score: 70 } });
-    const alerts = rule.evaluate(game);
-    expect(alerts).toHaveLength(1);
-    expect(alerts[0]!.id).toBe('overtime-final:game1');
-    expect(alerts[0]!.headline).toContain('wins in OT');
-  });
-
-  it('live and final alerts have different ids so both can fire', () => {
-    const live  = makeGame({ period: 3, clockSeconds: 300 });
-    const final = makeGame({ status: 'post', period: 3 });
-    expect(rule.evaluate(live)[0]!.id).not.toBe(rule.evaluate(final)[0]!.id);
+  it('does not fire for a finished game', () => {
+    const game = makeGame({ status: 'post', period: 3,
+      homeTeam: { ...makeGame().homeTeam, score: 72 },
+      awayTeam: { ...makeGame().awayTeam, score: 70 } });
+    expect(rule.evaluate(game)).toHaveLength(0);
   });
 
   it('does not fire in regulation', () => {

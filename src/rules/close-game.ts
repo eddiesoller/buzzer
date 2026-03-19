@@ -1,4 +1,4 @@
-import { Game, margin, estimateSecondsRemaining, isLive, isFinished, leadingTeam } from '../types/game.js';
+import { Game, margin, estimateSecondsRemaining, isLive } from '../types/game.js';
 import { Alert } from '../types/alert.js';
 import { AlertRule, makeAlertId, formatScore } from './rule.js';
 
@@ -10,21 +10,6 @@ export class CloseGameRule implements AlertRule {
 
   evaluate(game: Game): Alert[] {
     const diff = margin(game);
-
-    // Close final — regulation only (OT games are covered by OvertimeRule)
-    if (isFinished(game) && game.period === 2 && diff <= CLOSE_GAME_MARGIN) {
-      const winner = leadingTeam(game);
-      const score = formatScore(game.awayTeam, game.homeTeam);
-      return [{
-        id: makeAlertId(`${this.name}-final`, game.id),
-        rule: this.name,
-        gameId: game.id,
-        headline: `${winner?.shortName ?? 'Close'} wins a thriller! Final: ${score}`,
-        body: `${game.awayTeam.name} vs ${game.homeTeam.name}`,
-        priority: 'high',
-        createdAt: new Date(),
-      }];
-    }
 
     // Close game alert — live, 2nd half, ≤5 min remaining
     if (!isLive(game) || game.period !== 2) return [];

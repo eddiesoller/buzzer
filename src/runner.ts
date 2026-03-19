@@ -7,11 +7,11 @@ import { StateStore } from './state/store.js';
 import { AlertRule } from './rules/rule.js';
 import { PlayRule } from './rules/play-rule.js';
 import { CloseGameRule } from './rules/close-game.js';
-import { UpsetRule } from './rules/upset.js';
+import { UpsetBrewingRule } from './rules/upset-brewing.js';
 import { ScoringRunRule } from './rules/scoring-run.js';
-import { BlowoutRule } from './rules/blowout.js';
 import { ComebackRule } from './rules/comeback.js';
 import { OvertimeRule } from './rules/overtime.js';
+import { GameFinalRule } from './rules/game-final.js';
 import { ScoringMilestoneRule } from './rules/scoring-milestone.js';
 import { TripleDoubleRule } from './rules/triple-double.js';
 import { QuadrupleDoubleRule } from './rules/quadruple-double.js';
@@ -41,11 +41,11 @@ async function withRetry<T>(
 
 const SCOREBOARD_RULES: AlertRule[] = [
   new CloseGameRule(),
-  new UpsetRule(),
+  new UpsetBrewingRule(),
   new ScoringRunRule(),
-  new BlowoutRule(),
   new ComebackRule(),
   new OvertimeRule(),
+  new GameFinalRule(),
 ];
 
 const BOX_SCORE_RULES: AlertRule[] = [
@@ -297,14 +297,16 @@ export class Runner {
       }
     }
 
-    // Run play-level rules on new plays only
-    for (const play of newPlays) {
-      for (const rule of PLAY_RULES) {
-        try {
-          const alert = rule.evaluate(play, game);
-          if (alert) allAlerts.push(alert);
-        } catch (err) {
-          this.logger.warn({ err, rule: rule.name, gameId: game.id }, 'Play rule evaluation error');
+    // Run play-level rules on new plays — skip for finished games (handled by GameFinalRule)
+    if (isLive(game)) {
+      for (const play of newPlays) {
+        for (const rule of PLAY_RULES) {
+          try {
+            const alert = rule.evaluate(play, game);
+            if (alert) allAlerts.push(alert);
+          } catch (err) {
+            this.logger.warn({ err, rule: rule.name, gameId: game.id }, 'Play rule evaluation error');
+          }
         }
       }
     }

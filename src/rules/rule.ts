@@ -22,6 +22,11 @@ export function countAtOrAbove(values: number[], threshold: number): number {
   return values.filter((v) => v >= threshold).length;
 }
 
+/** "OT" for period 3, "2OT" for period 4, etc. */
+export function otLabel(period: number): string {
+  return period === 3 ? 'OT' : `${period - 2}OT`;
+}
+
 /** "AWAY 75, HOME 72" */
 export function formatScore(away: Team, home: Team): string {
   return `${away.abbreviation} ${away.score}, ${home.abbreviation} ${home.score}`;
