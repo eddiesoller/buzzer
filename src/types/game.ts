@@ -39,6 +39,7 @@ export interface Play {
   scoringPlay: boolean;
   period: number;
   clockSeconds: number;
+  clockDisplay: string;
   sequenceNumber: number;
   text: string;
   coordinate?: { x: number; y: number };

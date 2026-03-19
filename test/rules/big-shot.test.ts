@@ -234,6 +234,17 @@ describe('BigShotRule', () => {
       expect(alert).toBeNull();
     });
 
+    it('fires for a go-ahead free throw at clock=0:00', () => {
+      const play = makePlay({
+        teamId: 'away', scoringPlay: true, clockSeconds: 0, period: 2,
+        text: 'Makes free throw 2 of 2',
+        homeScore: 50, awayScore: 51, sequenceNumber: 10,
+      });
+      const alert = evalWithPrior({ homeScore: 50, awayScore: 50 }, play);
+      expect(alert).not.toBeNull();
+      expect(alert!.headline).toBe('Go-ahead free throw!');
+    });
+
     it('does not fire for a go-ahead that only ties the game', () => {
       const play = makePlay({
         teamId: 'away', scoringPlay: true, clockSeconds: 30, period: 2,

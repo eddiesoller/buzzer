@@ -315,7 +315,12 @@ export class Runner {
       : [];
 
     this.logger.info(
-      { gameId: game.id, total: allAlerts.length, new: newAlerts.length },
+      {
+        gameId: game.id,
+        total: allAlerts.length,
+        new: newAlerts.length,
+        rules: allAlerts.map((a) => a.rule),
+      },
       'Alerts evaluated'
     );
 

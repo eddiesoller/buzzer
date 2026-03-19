@@ -45,6 +45,7 @@ export function makePlay(overrides: Partial<Play> = {}): Play {
     scoringPlay: false,
     period: 1,
     clockSeconds: 600,
+    clockDisplay: '10:00',
     sequenceNumber: 0,
     text: '',
     ...overrides,

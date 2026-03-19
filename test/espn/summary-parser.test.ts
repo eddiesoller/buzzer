@@ -181,12 +181,15 @@ describe('mergeSummaryIntoGame', () => {
     expect(p0!.scoringPlay).toBe(false);
     expect(p0!.teamId).toBe('home');
     expect(p0!.clockSeconds).toBe(1200); // 20:00
+    expect(p0!.clockDisplay).toBe('20:00');
     expect(p1!.scoringPlay).toBe(true);
     expect(p1!.homeScore).toBe(2);
     expect(p1!.awayScore).toBe(0);
     expect(p1!.clockSeconds).toBe(1170); // 19:30
+    expect(p1!.clockDisplay).toBe('19:30');
     expect(p2!.teamId).toBe('away');
     expect(p2!.awayScore).toBe(3);
+    expect(p2!.clockDisplay).toBe('19:00');
   });
 
   it('parses sequenceNumber as integer', () => {

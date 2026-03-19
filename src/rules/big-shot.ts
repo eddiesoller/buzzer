@@ -1,7 +1,7 @@
 import { Play, Game, PlayerStats, Team } from '../types/game.js';
 import { Alert } from '../types/alert.js';
 import { PlayRule } from './play-rule.js';
-import { makeAlertId, formatScore } from './rule.js';
+import { makeAlertId } from './rule.js';
 
 const LONG_RANGE_FEET = 40;
 const GO_AHEAD_SECONDS = 60;
@@ -76,10 +76,10 @@ export class BigShotRule implements PlayRule {
       isLongRange = distanceFt >= LONG_RANGE_FEET;
     }
 
-    // Go-ahead: last 60 seconds (clock > 0), 2nd half or OT,
+    // Go-ahead: last 60 seconds (clock > 0, or clock=0 for free throws), 2nd half or OT,
     // scoring team was not already leading, now leads
     const isGoAhead =
-      play.clockSeconds > 0 &&
+      (play.clockSeconds > 0 || isFreethrow) &&
       play.clockSeconds <= GO_AHEAD_SECONDS &&
       play.period >= 2 &&
       scoringTeamWasNotLeading &&
@@ -106,7 +106,7 @@ export class BigShotRule implements PlayRule {
     }
 
     const headline = `${playerPrefix}${shotDesc}`;
-    const score = formatScore(game.awayTeam, game.homeTeam);
+    const scoreStr = `${game.awayTeam.abbreviation} ${play.awayScore}, ${game.homeTeam.abbreviation} ${play.homeScore}`;
     const teamPrefix = team ? `${team.abbreviation} | ` : '';
 
     return {
@@ -114,7 +114,7 @@ export class BigShotRule implements PlayRule {
       rule: this.name,
       gameId: game.id,
       headline,
-      body: `${teamPrefix}${score} | ${game.clock}`,
+      body: `${teamPrefix}${scoreStr} | ${play.clockDisplay}`,
       priority,
       createdAt: new Date(),
     };
