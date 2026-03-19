@@ -90,4 +90,19 @@ describe('ComebackRule', () => {
     const game = makeGame({ status: 'pre' });
     expect(rule.evaluate(game)).toHaveLength(0);
   });
+
+  it('does not fire when opponent play score exceeds current game score (inconsistent ESPN data)', () => {
+    const plays = [
+      makePlay({ scoringPlay: true, teamId: 'home', homeScore: 18, awayScore: 0 }), // home led 18-0 in plays
+      makePlay({ scoringPlay: true, teamId: 'away', homeScore: 18, awayScore: 1 }),
+    ];
+    // Scoreboard shows away now leads 13-12, but home's peak play score (18) > their
+    // current score (12) — physically impossible, data is corrupt
+    const game = makeGame({
+      homeTeam: { id: 'home', name: 'Home', shortName: 'Home', abbreviation: 'HME', score: 12 },
+      awayTeam: { id: 'away', name: 'Away', shortName: 'Away', abbreviation: 'AWY', score: 13 },
+      plays,
+    });
+    expect(rule.evaluate(game)).toHaveLength(0);
+  });
 });

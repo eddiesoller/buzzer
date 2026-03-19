@@ -16,14 +16,22 @@ export class ComebackRule implements AlertRule {
     ] as const) {
       const isHome = team.id === game.homeTeam.id;
       let maxDeficit = 0;
+      let oppScoreAtPeak = 0;
       for (const p of game.plays) {
         const teamScore = isHome ? p.homeScore : p.awayScore;
         const oppScore  = isHome ? p.awayScore : p.homeScore;
-        maxDeficit = Math.max(maxDeficit, oppScore - teamScore);
+        const deficit = oppScore - teamScore;
+        if (deficit > maxDeficit) {
+          maxDeficit = deficit;
+          oppScoreAtPeak = oppScore;
+        }
       }
       const teamNow = isHome ? game.homeTeam.score : game.awayTeam.score;
       const oppNow  = isHome ? game.awayTeam.score : game.homeTeam.score;
-      if (maxDeficit >= COMEBACK_DEFICIT && teamNow > oppNow) {
+      // Sanity check: opponent's score at peak deficit must not exceed their current
+      // score (scores only go up). If violated, plays data is inconsistent with
+      // the scoreboard and the deficit reading is unreliable.
+      if (maxDeficit >= COMEBACK_DEFICIT && teamNow > oppNow && oppScoreAtPeak <= oppNow) {
         return [{
           id: makeAlertId(this.name, game.id, team.id),
           rule: this.name,

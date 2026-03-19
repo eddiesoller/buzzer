@@ -62,14 +62,16 @@ function groundTruthComebacks(game: Game): string[] {
   const results: string[] = [];
   for (const [teamId, isHome] of [[game.homeTeam.id, true], [game.awayTeam.id, false]] as const) {
     let maxDeficit = 0;
+    let oppScoreAtPeak = 0;
     for (const p of game.plays) {
       const teamScore = isHome ? p.homeScore : p.awayScore;
       const oppScore  = isHome ? p.awayScore : p.homeScore;
-      maxDeficit = Math.max(maxDeficit, oppScore - teamScore);
+      const deficit = oppScore - teamScore;
+      if (deficit > maxDeficit) { maxDeficit = deficit; oppScoreAtPeak = oppScore; }
     }
     const teamNow = isHome ? game.homeTeam.score : game.awayTeam.score;
     const oppNow  = isHome ? game.awayTeam.score : game.homeTeam.score;
-    if (maxDeficit >= 15 && teamNow > oppNow) {
+    if (maxDeficit >= 15 && teamNow > oppNow && oppScoreAtPeak <= oppNow) {
       results.push(`comeback:${game.id}:${teamId}`);
     }
   }
