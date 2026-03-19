@@ -1,4 +1,4 @@
-import { Game, isLive } from '../types/game.js';
+import { Game, isLive, estimateSecondsRemaining } from '../types/game.js';
 import { Alert } from '../types/alert.js';
 import { AlertRule, makeAlertId, formatScore } from './rule.js';
 
@@ -15,7 +15,8 @@ export class UpsetBrewingRule implements AlertRule {
     const isUnderdogLeading = higherSeed.score > lowerSeed.score;
     if (!isUnderdogLeading) return [];
 
-    if (!isLive(game) || game.period < 2) return [];
+    if (!isLive(game)) return [];
+    if (estimateSecondsRemaining(game) > 600) return [];
 
     const score = formatScore(game.awayTeam, game.homeTeam);
     return [{
