@@ -103,18 +103,30 @@ async function main() {
   // Run immediately on startup
   await runner.pollScoreboard();
 
-  const scoreboardInterval = setInterval(async () => {
-    try {
-      await runner.pollScoreboard();
-    } catch (err) {
-      logger.error({ err }, 'Scoreboard poll error');
+  let scoreboardTimeout: NodeJS.Timeout | undefined;
+  const scheduleNextPoll = () => {
+    const delayMs = runner.nextScoreboardPollMs(scoreboardIntervalMs);
+    if (delayMs > scoreboardIntervalMs) {
+      logger.info(
+        { nextPollMinutes: Math.round(delayMs / 60_000) },
+        'No imminent games — sleeping until closer to next game start'
+      );
     }
-  }, scoreboardIntervalMs);
+    scoreboardTimeout = setTimeout(async () => {
+      try {
+        await runner.pollScoreboard();
+      } catch (err) {
+        logger.error({ err }, 'Scoreboard poll error');
+      }
+      scheduleNextPoll();
+    }, delayMs);
+  };
+  scheduleNextPoll();
 
   // Graceful shutdown
   const shutdown = async (signal: string) => {
     logger.info({ signal }, 'Shutting down');
-    clearInterval(scoreboardInterval);
+    if (scoreboardTimeout) clearTimeout(scoreboardTimeout);
     runner.shutdown();
     await closeDb();
     process.exit(0);

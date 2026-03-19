@@ -172,6 +172,29 @@ export class Runner {
     }
   }
 
+  /**
+   * Computes the optimal delay before the next scoreboard poll.
+   * When no games are live and the next tip-off is far away, returns a longer
+   * delay so we sleep until closer to that game's start time.
+   * Never returns less than configuredIntervalMs.
+   */
+  nextScoreboardPollMs(configuredIntervalMs: number): number {
+    const BUFFER_MS = 5 * 60 * 1000; // poll 5 min before scheduled start
+
+    const cachedGames = [...this.gameCache.values()];
+    const hasLiveGame = cachedGames.some((g) => g.status === 'in');
+    if (hasLiveGame) return configuredIntervalMs;
+
+    const preGames = cachedGames.filter((g) => g.status === 'pre');
+    if (preGames.length === 0) return configuredIntervalMs;
+
+    const now = Date.now();
+    const earliestStartMs = Math.min(...preGames.map((g) => new Date(g.startTime).getTime()));
+    const msUntilPoll = earliestStartMs - BUFFER_MS - now;
+
+    return msUntilPoll > configuredIntervalMs ? msUntilPoll : configuredIntervalMs;
+  }
+
   /** Fetches and parses the ESPN scoreboard. Returns null if the fetch fails. */
   private async fetchGames(): Promise<Game[] | null> {
     this.logger.info('Polling ESPN scoreboard...');
