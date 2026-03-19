@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { BigShotRule } from '../../src/rules/big-shot.js';
-import { makeGame, makePlay } from './helpers.js';
+import { makeGame, makePlay, makePlayer } from './helpers.js';
 
 const rule = new BigShotRule();
 
@@ -276,6 +276,90 @@ describe('BigShotRule', () => {
       const alert = rule.evaluate(play, makeGame());
       expect(alert).not.toBeNull();
       expect(alert!.headline).toContain('47');
+    });
+  });
+
+  describe('player and team context', () => {
+    it('prefixes headline with player name when a matching player is found', () => {
+      const player = makePlayer({ playerId: 'p1', playerName: 'Marcus Johnson', teamId: 'away' });
+      const play = makePlay({
+        teamId: 'away', scoringPlay: true, clockSeconds: 0, period: 2,
+        text: 'Marcus Johnson made Two Point Jump Shot',
+        homeScore: 50, awayScore: 52, sequenceNumber: 10,
+      });
+      const prior = makePlay({ sequenceNumber: 9, homeScore: 50, awayScore: 50 });
+      const game = makeGame({ plays: [prior], players: [player] });
+      const alert = rule.evaluate(play, game);
+      expect(alert).not.toBeNull();
+      expect(alert!.headline).toBe('Marcus Johnson - Buzzer beater!');
+    });
+
+    it('uses just the shot description when no player name matches play text', () => {
+      const player = makePlayer({ playerId: 'p1', playerName: 'Marcus Johnson', teamId: 'away' });
+      const play = makePlay({
+        teamId: 'away', scoringPlay: true, clockSeconds: 0, period: 2,
+        text: 'Two Point Jump Shot Made',
+        homeScore: 50, awayScore: 52, sequenceNumber: 10,
+      });
+      const prior = makePlay({ sequenceNumber: 9, homeScore: 50, awayScore: 50 });
+      const game = makeGame({ plays: [prior], players: [player] });
+      const alert = rule.evaluate(play, game);
+      expect(alert).not.toBeNull();
+      expect(alert!.headline).toBe('Buzzer beater!');
+    });
+
+    it('only matches players on the scoring team, not the opponent', () => {
+      const homePlayer = makePlayer({ playerId: 'p1', playerName: 'Home Star', teamId: 'home' });
+      const awayPlayer = makePlayer({ playerId: 'p2', playerName: 'Away Star', teamId: 'away' });
+      const play = makePlay({
+        teamId: 'away', scoringPlay: true, clockSeconds: 0, period: 2,
+        text: 'Away Star made Two Point Jump Shot',
+        homeScore: 50, awayScore: 52, sequenceNumber: 10,
+      });
+      const prior = makePlay({ sequenceNumber: 9, homeScore: 50, awayScore: 50 });
+      const game = makeGame({ plays: [prior], players: [homePlayer, awayPlayer] });
+      const alert = rule.evaluate(play, game);
+      expect(alert).not.toBeNull();
+      expect(alert!.headline).toContain('Away Star');
+      expect(alert!.headline).not.toContain('Home Star');
+    });
+
+    it('includes team abbreviation in body when teamId is known', () => {
+      const play = makePlay({
+        teamId: 'away', scoringPlay: true, clockSeconds: 30, period: 2,
+        homeScore: 50, awayScore: 52, sequenceNumber: 10,
+      });
+      const prior = makePlay({ sequenceNumber: 9, homeScore: 50, awayScore: 50 });
+      const game = makeGame({ plays: [prior] });
+      const alert = rule.evaluate(play, game);
+      expect(alert).not.toBeNull();
+      expect(alert!.body).toContain('AWAY');
+      expect(alert!.body).toMatch(/^AWAY \|/);
+    });
+
+    it('omits team prefix from body when teamId is null', () => {
+      const play = makePlay({
+        teamId: null, scoringPlay: true, clockSeconds: 600, period: 2,
+        coordinate: { x: 25, y: 65 },
+      });
+      const alert = rule.evaluate(play, makeGame());
+      expect(alert).not.toBeNull();
+      // Body should start with the score, not a team abbreviation
+      expect(alert!.body).toMatch(/^(HOME|AWAY) \d+/);
+    });
+
+    it('player name prefix works for go-ahead shots too', () => {
+      const player = makePlayer({ playerId: 'p1', playerName: 'Jane Doe', teamId: 'away' });
+      const play = makePlay({
+        teamId: 'away', scoringPlay: true, clockSeconds: 30, period: 2,
+        text: 'Jane Doe made Three Point Jump Shot',
+        homeScore: 50, awayScore: 52, sequenceNumber: 10,
+      });
+      const prior = makePlay({ sequenceNumber: 9, homeScore: 50, awayScore: 50 });
+      const game = makeGame({ plays: [prior], players: [player] });
+      const alert = rule.evaluate(play, game);
+      expect(alert).not.toBeNull();
+      expect(alert!.headline).toBe('Jane Doe - Go-ahead basket!');
     });
   });
 });

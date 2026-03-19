@@ -1,4 +1,4 @@
-import { Play, Game } from '../types/game.js';
+import { Play, Game, PlayerStats, Team } from '../types/game.js';
 import { Alert } from '../types/alert.js';
 import { PlayRule } from './play-rule.js';
 import { makeAlertId, formatScore } from './rule.js';
@@ -8,6 +8,17 @@ const GO_AHEAD_SECONDS = 60;
 
 function distanceFromBasket(coord: { x: number; y: number }): number {
   return Math.round(Math.sqrt((coord.x - 25) ** 2 + coord.y ** 2));
+}
+
+function findScoringTeam(play: Play, game: Game): Team | null {
+  if (play.teamId === game.homeTeam.id) return game.homeTeam;
+  if (play.teamId === game.awayTeam.id) return game.awayTeam;
+  return null;
+}
+
+function findScoringPlayer(play: Play, game: Game): PlayerStats | null {
+  const teamPlayers = (game.players ?? []).filter((p) => p.teamId === play.teamId);
+  return teamPlayers.find((p) => play.text.includes(p.playerName)) ?? null;
 }
 
 /** Returns the play immediately before this one in game.plays, or null. */
@@ -76,29 +87,34 @@ export class BigShotRule implements PlayRule {
 
     if (!isBuzzerBeater && !isLongRange && !isGoAhead) return null;
 
-    let headline: string;
     const priority: Alert['priority'] = isBuzzerBeater ? 'high' : 'medium';
+    const player = findScoringPlayer(play, game);
+    const team = findScoringTeam(play, game);
+    const playerPrefix = player ? `${player.playerName} - ` : '';
 
+    let shotDesc: string;
     if (isBuzzerBeater && isLongRange) {
-      headline = `${distanceFt}-foot buzzer beater!`;
+      shotDesc = `${distanceFt}-foot buzzer beater!`;
     } else if (isBuzzerBeater) {
-      headline = 'Buzzer beater!';
+      shotDesc = 'Buzzer beater!';
     } else if (isGoAhead && isLongRange) {
-      headline = `Go-ahead ${distanceFt}-foot shot!`;
+      shotDesc = `Go-ahead ${distanceFt}-foot shot!`;
     } else if (isGoAhead) {
-      headline = isFreethrow ? 'Go-ahead free throw!' : 'Go-ahead basket!';
+      shotDesc = isFreethrow ? 'Go-ahead free throw!' : 'Go-ahead basket!';
     } else {
-      headline = `${distanceFt}-foot shot!`;
+      shotDesc = `${distanceFt}-foot shot!`;
     }
 
+    const headline = `${playerPrefix}${shotDesc}`;
     const score = formatScore(game.awayTeam, game.homeTeam);
+    const teamPrefix = team ? `${team.abbreviation} | ` : '';
 
     return {
       id: makeAlertId(this.name, game.id, String(play.sequenceNumber)),
       rule: this.name,
       gameId: game.id,
       headline,
-      body: `${score} | ${game.clock}`,
+      body: `${teamPrefix}${score} | ${game.clock}`,
       priority,
       createdAt: new Date(),
     };
