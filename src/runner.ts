@@ -326,7 +326,7 @@ export class Runner {
 
     // Send new alerts
     for (const alert of newAlerts) {
-      const tweetText = formatTweet(alert);
+      const tweetText = formatTweet(alert, game);
 
       if (this.dryRun) {
         this.logger.info({ alertId: alert.id, tweetText }, '[DRY RUN] Would send alert');

@@ -14,8 +14,7 @@
 import { EspnClient } from '../src/espn/client.js';
 import { parseScoreboard } from '../src/espn/scoreboard-parser.js';
 import { mergeSummaryIntoGame } from '../src/espn/summary-parser.js';
-import { UpsetRule } from '../src/rules/upset.js';
-import { BlowoutRule } from '../src/rules/blowout.js';
+import { GameFinalRule } from '../src/rules/game-final.js';
 import { ScoringMilestoneRule } from '../src/rules/scoring-milestone.js';
 import { OvertimeRule } from '../src/rules/overtime.js';
 import { TripleDoubleRule } from '../src/rules/triple-double.js';
@@ -32,8 +31,7 @@ import { Alert } from '../src/types/alert.js';
 import { TOURNAMENT_DATES, formatDate } from './utils.js';
 
 const SNAPSHOT_RULES: AlertRule[] = [
-  new UpsetRule(),
-  new BlowoutRule(),
+  new GameFinalRule(),
   new OvertimeRule(),
   new ScoringMilestoneRule(),
   new ScoringRunRule(),
@@ -129,7 +127,7 @@ async function replay(year: string) {
         for (const alert of gameAlerts) {
           allAlerts.push({ date: displayDate, game: gameLabel, alert });
           console.log(`    [${alert.priority.toUpperCase()}] ${alert.headline}`);
-          console.log(`    Tweet: ${formatTweet(alert)}`);
+          console.log(`    Tweet: ${formatTweet(alert, enriched)}`);
           console.log();
         }
       }

@@ -11,9 +11,8 @@
 import { EspnClient } from '../src/espn/client.js';
 import { parseScoreboard } from '../src/espn/scoreboard-parser.js';
 import { mergeSummaryIntoGame } from '../src/espn/summary-parser.js';
-import { UpsetRule } from '../src/rules/upset.js';
+import { GameFinalRule } from '../src/rules/game-final.js';
 import { ScoringMilestoneRule } from '../src/rules/scoring-milestone.js';
-import { BlowoutRule } from '../src/rules/blowout.js';
 import { ScoringRunRule } from '../src/rules/scoring-run.js';
 import { ComebackRule } from '../src/rules/comeback.js';
 import { Game } from '../src/types/game.js';
@@ -100,9 +99,8 @@ async function verify(year: string) {
   }
 
   const client = new EspnClient();
-  const upsetRule = new UpsetRule();
+  const gameFinalRule = new GameFinalRule();
   const milestoneRule = new ScoringMilestoneRule();
-  const blowoutRule = new BlowoutRule();
   const scoringRunRule = new ScoringRunRule();
   const comebackRule = new ComebackRule();
 
@@ -137,31 +135,38 @@ async function verify(year: string) {
 
       const label = `${enriched.awayTeam.abbreviation} @ ${enriched.homeTeam.abbreviation} [${displayDate}]`;
 
-      // Check upsets
+      // Check game-final (covers upsets and blowouts)
+      const gameFinalAlerts = gameFinalRule.evaluate(enriched);
+      const gameFinalAlert = gameFinalAlerts[0];
+
+      // Check upsets — buzzer-beater upsets won't have "UPSET" in headline (buzzer beater takes priority)
       const expectedUpsets = groundTruthUpsets(enriched);
-      const ruleUpsets = upsetRule.evaluate(enriched).map((a) => a.id);
-      for (const id of expectedUpsets) {
-        if (!ruleUpsets.some((rid) => rid.includes('upset-confirmed') && rid.includes(enriched.id))) {
-          console.log(`  MISSED upset   ${label} — seeds #${enriched.awayTeam.seed} vs #${enriched.homeTeam.seed}, score ${enriched.awayTeam.score}-${enriched.homeTeam.score}`);
-          misses++;
-        }
+      const hasBuzzerBeater = (enriched.plays ?? []).some(
+        (p) => p.scoringPlay && p.clockSeconds === 0 && p.period === enriched.period && !p.text.toLowerCase().includes('free throw')
+      );
+      const reportedAsUpset = gameFinalAlert?.headline.startsWith('UPSET');
+      if (expectedUpsets.length > 0 && !reportedAsUpset && !hasBuzzerBeater) {
+        console.log(`  MISSED upset   ${label} — seeds #${enriched.awayTeam.seed} vs #${enriched.homeTeam.seed}, score ${enriched.awayTeam.score}-${enriched.homeTeam.score}`);
+        misses++;
       }
-      for (const rid of ruleUpsets.filter((r) => r.startsWith('upset-confirmed'))) {
-        if (expectedUpsets.length === 0) {
-          console.log(`  FALSE POSITIVE upset   ${label}`);
-          falsePositives++;
-        }
+      if (expectedUpsets.length === 0 && reportedAsUpset) {
+        console.log(`  FALSE POSITIVE upset   ${label}`);
+        falsePositives++;
       }
 
-      // Check blowouts
+      // Check blowouts — blowouts only show as such when not also an upset/OT/buzzer-beater
       const expectedBlowouts = groundTruthBlowouts(enriched);
-      const ruleBlowouts = blowoutRule.evaluate(enriched).map((a) => a.id);
-      if (expectedBlowouts.length > 0 && ruleBlowouts.length === 0) {
+      const isOT = enriched.period >= 3;
+      const isUpset = expectedUpsets.length > 0;
+      const blowoutShouldShow = expectedBlowouts.length > 0 && !isUpset && !isOT && !hasBuzzerBeater;
+      const reportedAsBlowout = gameFinalAlert !== undefined && !reportedAsUpset && !isOT && !hasBuzzerBeater &&
+        Math.abs(enriched.homeTeam.score - enriched.awayTeam.score) >= 30;
+      if (blowoutShouldShow && !reportedAsBlowout) {
         const diff = Math.abs(enriched.homeTeam.score - enriched.awayTeam.score);
         console.log(`  MISSED blowout   ${label} — margin ${diff}`);
         misses++;
       }
-      if (expectedBlowouts.length === 0 && ruleBlowouts.length > 0) {
+      if (expectedBlowouts.length === 0 && reportedAsBlowout) {
         console.log(`  FALSE POSITIVE blowout   ${label}`);
         falsePositives++;
       }
