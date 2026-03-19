@@ -10,7 +10,7 @@ import pino from 'pino';
 import { Runner } from '../../src/runner.js';
 import { EspnClient } from '../../src/espn/client.js';
 import { makeGame } from '../rules/helpers.js';
-import { EspnSummaryResponse } from '../../src/types/espn.js';
+import { EspnSummaryResponse, EspnScoreboardResponse } from '../../src/types/espn.js';
 
 function makeStore() {
   return {
@@ -138,6 +138,31 @@ describe('Runner play cursor', () => {
     expect(evaluated.some((a) => a.rule === 'big-shot')).toBe(true);
   });
 
+  it('always emits "Alerts evaluated" even when no alerts fire', async () => {
+    const store = makeStore();
+    const runner = makeRunner(store);
+
+    const game = makeGame({ id: 'g1', lastProcessedSeq: 100 });
+    runner['gameCache'].set('g1', game);
+
+    vi.spyOn(EspnClient.prototype, 'fetchGameSummary').mockResolvedValue({
+      boxscore: { teams: [], players: [] },
+      plays: [],
+    });
+
+    const loggedMessages: string[] = [];
+    vi.spyOn(runner['logger'], 'info').mockImplementation((...args: unknown[]) => {
+      const msg = args.find((a) => typeof a === 'string');
+      if (msg) loggedMessages.push(msg);
+    });
+
+    await runner.pollGame('g1');
+
+    expect(loggedMessages).toContain('Alerts evaluated');
+    // filterNewAlerts should NOT be called when there are no alerts
+    expect(store.filterNewAlerts).not.toHaveBeenCalled();
+  });
+
   it('resets cursor and reprocesses all plays on sequence regression', async () => {
     const store = makeStore();
     const runner = makeRunner(store);
@@ -159,5 +184,88 @@ describe('Runner play cursor', () => {
     // All plays reprocessed (BigShotRule fires — dedup handles double-post prevention)
     const evaluated = store.filterNewAlerts.mock.calls.flatMap((c) => c[0] as { rule: string }[]);
     expect(evaluated.some((a) => a.rule === 'big-shot')).toBe(true);
+  });
+});
+
+function makeScoreboardWith(ids: string[]): EspnScoreboardResponse {
+  const makeCompetitor = (homeAway: 'home' | 'away', teamId: string) => ({
+    id: teamId,
+    homeAway,
+    score: '0',
+    team: {
+      id: teamId,
+      displayName: `Team ${teamId}`,
+      shortDisplayName: `T${teamId}`,
+      abbreviation: `T${teamId}`,
+    },
+  });
+
+  return {
+    events: ids.map((id) => ({
+      id,
+      date: '2026-03-19T00:00:00Z',
+      name: `Game ${id}`,
+      shortName: `G${id}`,
+      status: {
+        clock: 600,
+        displayClock: '10:00',
+        period: 1,
+        type: {
+          id: '2',
+          name: 'STATUS_IN_PROGRESS',
+          state: 'in',
+          completed: false,
+          description: 'In Progress',
+          detail: '10:00 - 1st Half',
+          shortDetail: '10:00 - 1st',
+        },
+      },
+      competitions: [
+        {
+          id,
+          date: '2026-03-19T00:00:00Z',
+          competitors: [makeCompetitor('home', `h${id}`), makeCompetitor('away', `a${id}`)],
+          status: {
+            clock: 600,
+            displayClock: '10:00',
+            period: 1,
+            type: {
+              id: '2',
+              name: 'STATUS_IN_PROGRESS',
+              state: 'in',
+              completed: false,
+              description: 'In Progress',
+              detail: '10:00 - 1st Half',
+              shortDetail: '10:00 - 1st',
+            },
+          },
+        },
+      ],
+    })),
+  };
+}
+
+describe('Runner pollScoreboard', () => {
+  it('starts a watcher for each live game and polls all of them', async () => {
+    const store = makeStore();
+    const runner = makeRunner(store);
+
+    const gameIds = ['game1', 'game2', 'game3'];
+
+    vi.spyOn(EspnClient.prototype, 'fetchScoreboard').mockResolvedValue(
+      makeScoreboardWith(gameIds)
+    );
+
+    const pollGameSpy = vi.spyOn(runner as never, 'pollGame').mockResolvedValue(undefined);
+
+    await runner.pollScoreboard();
+
+    expect(runner['watchers'].size).toBe(3);
+    const polledIds = pollGameSpy.mock.calls.map((c) => c[0]);
+    for (const id of gameIds) {
+      expect(polledIds).toContain(id);
+    }
+
+    runner.shutdown();
   });
 });

@@ -217,6 +217,7 @@ export class Runner {
       return;
     }
     this.inFlight.add(gameId);
+    this.logger.debug({ gameId }, 'Polling game');
 
     try {
       const cachedGame = this.gameCache.get(gameId);
@@ -309,18 +310,19 @@ export class Runner {
       }
     }
 
-    if (allAlerts.length === 0) {
-      await this.store.saveGame(game);
-      return;
-    }
-
-    // Deduplicate against fired alerts
-    const newAlerts = await this.store.filterNewAlerts(allAlerts);
+    const newAlerts = allAlerts.length > 0
+      ? await this.store.filterNewAlerts(allAlerts)
+      : [];
 
     this.logger.info(
       { gameId: game.id, total: allAlerts.length, new: newAlerts.length },
       'Alerts evaluated'
     );
+
+    if (allAlerts.length === 0) {
+      await this.store.saveGame(game);
+      return;
+    }
 
     // Send new alerts
     for (const alert of newAlerts) {
