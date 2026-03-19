@@ -25,7 +25,7 @@ import { Alert } from './types/alert.js';
 
 async function withRetry<T>(
   fn: () => Promise<T>,
-  { retries = 3, baseDelayMs = 500 } = {}
+  { retries = 3, baseDelayMs = 500, logger }: { retries?: number; baseDelayMs?: number; logger?: Logger } = {}
 ): Promise<T> {
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -33,7 +33,11 @@ async function withRetry<T>(
       return await fn();
     } catch (err) {
       lastErr = err;
-      if (attempt < retries) await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+      if (attempt < retries) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        logger?.warn({ attempt: attempt + 1, retries, err: errMsg }, `Retrying (attempt ${attempt + 1}/${retries})`);
+        await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
+      }
     }
   }
   throw lastErr;
@@ -63,6 +67,7 @@ export class Runner {
   private readonly gameCache = new Map<string, Game>();
   private readonly watchers = new Map<string, NodeJS.Timeout>();
   private readonly inFlight = new Set<string>();
+  private readonly skipCounts = new Map<string, number>();
   private readonly activePollIntervalMs: number;
 
   constructor(
@@ -199,7 +204,7 @@ export class Runner {
   private async fetchGames(): Promise<Game[] | null> {
     this.logger.info('Polling ESPN scoreboard...');
     try {
-      const scoreboard = await withRetry(() => this.espn.fetchScoreboard());
+      const scoreboard = await withRetry(() => this.espn.fetchScoreboard(), { logger: this.logger });
       const games = parseScoreboard(scoreboard);
       this.logger.debug({ count: games.length }, 'Parsed games');
       return games;
@@ -236,9 +241,16 @@ export class Runner {
    */
   async pollGame(gameId: string): Promise<void> {
     if (this.inFlight.has(gameId)) {
-      this.logger.debug({ gameId }, 'Game poll skipped — already in flight');
+      const skipCount = (this.skipCounts.get(gameId) ?? 0) + 1;
+      this.skipCounts.set(gameId, skipCount);
+      if (skipCount >= 3) {
+        this.logger.warn({ gameId, consecutiveSkips: skipCount }, 'Game poll repeatedly skipped — previous poll still in flight');
+      } else {
+        this.logger.debug({ gameId }, 'Game poll skipped — already in flight');
+      }
       return;
     }
+    this.skipCounts.delete(gameId);
     this.inFlight.add(gameId);
     this.logger.debug({ gameId }, 'Polling game');
 
@@ -252,7 +264,7 @@ export class Runner {
       // Fetch summary and merge into cached game snapshot
       let game = cachedGame;
       try {
-        const summary = await withRetry(() => this.espn.fetchGameSummary(gameId));
+        const summary = await withRetry(() => this.espn.fetchGameSummary(gameId), { logger: this.logger });
         game = mergeSummaryIntoGame(cachedGame, summary);
       } catch (err) {
         this.logger.warn({ err, gameId }, 'Failed to fetch game summary');
@@ -271,7 +283,10 @@ export class Runner {
           game = { ...game, lastProcessedSeq: maxSeq };
         } else if (maxSeq < cachedGame.lastProcessedSeq) {
           // Sequence regressed (ESPN data correction) — reset cursor, reprocess all
-          this.logger.warn({ gameId, lastSeq: cachedGame.lastProcessedSeq, maxSeq }, 'Play sequence regressed — resetting cursor');
+          this.logger.warn(
+            { gameId, oldCursor: cachedGame.lastProcessedSeq, newCursor: maxSeq, reprocessedPlays: allPlays.length },
+            'Play sequence regressed — resetting cursor and reprocessing all plays'
+          );
           newPlays = allPlays;
           game = { ...game, lastProcessedSeq: maxSeq };
         } else {
@@ -359,22 +374,22 @@ export class Runner {
       if (this.dryRun) {
         this.logger.info({ alertId: alert.id, tweetText }, '[DRY RUN] Would send alert');
       } else {
-        let atLeastOneSent = this.notifiers.length === 0;
+        let allSent = true;
         await Promise.allSettled(
           this.notifiers.map(async (notifier) => {
             try {
               await notifier.send(alert, tweetText);
-              atLeastOneSent = true;
             } catch (err) {
+              allSent = false;
               this.logger.error({ err, alertId: alert.id }, 'Notifier error');
             }
           })
         );
-        // Only mark fired if at least one notifier succeeded — failed sends will retry next poll
-        if (atLeastOneSent) {
+        // Only mark fired if all notifiers succeeded — partial failures retry next poll
+        if (allSent) {
           await this.store.markAlertFired(alert);
         } else {
-          this.logger.warn({ alertId: alert.id }, 'All notifiers failed — alert will retry next poll');
+          this.logger.warn({ alertId: alert.id }, 'Some notifiers failed — alert will retry next poll');
         }
       }
     }

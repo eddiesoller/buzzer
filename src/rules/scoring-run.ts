@@ -44,12 +44,22 @@ export class ScoringRunRule implements AlertRule {
   }
 
   private activeRun(plays: Play[], teamId: string, isHome: boolean): number {
+    // Forward pass: record the index of the previous scoring play at each position
+    let lastScoringIdx = -1;
+    const prevScoringIdx: number[] = new Array(plays.length).fill(-1);
+    for (let i = 0; i < plays.length; i++) {
+      prevScoringIdx[i] = lastScoringIdx;
+      if (plays[i]!.scoringPlay) lastScoringIdx = i;
+    }
+
+    // Backward pass: accumulate run until opponent scores
     let run = 0;
     for (let i = plays.length - 1; i >= 0; i--) {
       const p = plays[i]!;
       if (!p.scoringPlay) continue;
       if (p.teamId !== teamId) break; // opponent scored — run ended
-      const prev = plays.slice(0, i).findLast((x) => x.scoringPlay);
+      const prevIdx = prevScoringIdx[i];
+      const prev = prevIdx >= 0 ? plays[prevIdx] : null;
       const prevScore = isHome ? (prev?.homeScore ?? 0) : (prev?.awayScore ?? 0);
       const curScore = isHome ? p.homeScore : p.awayScore;
       run += curScore - prevScore;

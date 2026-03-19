@@ -21,17 +21,6 @@ function findScoringPlayer(play: Play, game: Game): PlayerStats | null {
   return teamPlayers.find((p) => play.text.includes(p.playerName)) ?? null;
 }
 
-/** Returns the play immediately before this one in game.plays, or null. */
-function prevPlay(play: Play, game: Game): Play | null {
-  let best: Play | null = null;
-  for (const p of game.plays ?? []) {
-    if (p.sequenceNumber < play.sequenceNumber) {
-      if (best === null || p.sequenceNumber > best.sequenceNumber) best = p;
-    }
-  }
-  return best;
-}
-
 export class BigShotRule implements PlayRule {
   readonly name = 'big-shot';
 
@@ -51,7 +40,14 @@ export class BigShotRule implements PlayRule {
     // Without a known teamId or a prior play, defaults to false (no alert).
     let scoringTeamWasNotLeading = false;
     if (play.teamId !== null) {
-      const prior = prevPlay(play, game);
+      // Single-pass find of the play immediately before this one by sequence number
+      let prior: Play | null = null;
+      for (const p of game.plays ?? []) {
+        if (p.sequenceNumber < play.sequenceNumber &&
+            (prior === null || p.sequenceNumber > prior.sequenceNumber)) {
+          prior = p;
+        }
+      }
       if (prior !== null) {
         const preScoringScore = scoringTeamIsHome ? prior.homeScore : prior.awayScore;
         const preOpponentScore = scoringTeamIsHome ? prior.awayScore : prior.homeScore;

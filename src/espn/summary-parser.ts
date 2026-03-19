@@ -1,10 +1,43 @@
+import { z } from 'zod';
 import { EspnSummaryResponse, EspnPlayerStatEntry, EspnPlayerStatGroup } from '../types/espn.js';
 import { Game, Play, PlayerStats } from '../types/game.js';
+
+const espnSummarySchema = z.object({
+  boxscore: z.object({
+    players: z.array(z.object({
+      team: z.object({ id: z.string() }),
+      statistics: z.array(z.object({
+        keys: z.array(z.string()),
+        athletes: z.array(z.object({
+          athlete: z.object({ id: z.string(), displayName: z.string() }),
+          starter: z.boolean(),
+          didNotPlay: z.boolean(),
+          stats: z.array(z.string()),
+        })),
+      })),
+    })),
+  }).optional(),
+  plays: z.array(z.object({
+    sequenceNumber: z.string(),
+    scoringPlay: z.boolean(),
+    homeScore: z.number(),
+    awayScore: z.number(),
+    period: z.object({ number: z.number() }),
+    clock: z.object({ displayValue: z.string() }),
+    team: z.object({ id: z.string() }).optional(),
+    text: z.string(),
+    coordinate: z.object({ x: z.number(), y: z.number() }).optional(),
+  })).optional(),
+});
 
 /**
  * Merges player stats from the summary endpoint into an existing Game object.
  */
 export function mergeSummaryIntoGame(game: Game, summary: EspnSummaryResponse): Game {
+  const parsed = espnSummarySchema.safeParse(summary);
+  if (!parsed.success) {
+    throw new Error(`ESPN summary response validation failed: ${parsed.error.message}`);
+  }
   if (!summary.boxscore?.players) return game;
 
   const players: PlayerStats[] = [];

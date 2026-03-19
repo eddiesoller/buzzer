@@ -1,7 +1,49 @@
+import { z } from 'zod';
 import { EspnScoreboardResponse, EspnCompetitor } from '../types/espn.js';
 import { Game, Team, GameStatus } from '../types/game.js';
 
+const espnScoreboardSchema = z.object({
+  events: z.array(z.object({
+    id: z.string(),
+    competitions: z.array(z.object({
+      date: z.string(),
+      competitors: z.array(z.object({
+        homeAway: z.enum(['home', 'away']),
+        score: z.string(),
+        team: z.object({
+          id: z.string(),
+          displayName: z.string(),
+          shortDisplayName: z.string(),
+          abbreviation: z.string(),
+        }),
+        records: z.array(z.object({
+          type: z.string().optional(),
+          summary: z.string(),
+        })).optional(),
+        curatedRank: z.object({ current: z.number() }).optional(),
+      })),
+      status: z.object({
+        clock: z.number(),
+        displayClock: z.string(),
+        period: z.number(),
+        type: z.object({
+          state: z.enum(['pre', 'in', 'post']),
+        }),
+      }),
+      venue: z.object({
+        fullName: z.string(),
+        city: z.string().optional(),
+      }).optional(),
+    })),
+  })),
+});
+
 export function parseScoreboard(response: EspnScoreboardResponse): Game[] {
+  const parsed = espnScoreboardSchema.safeParse(response);
+  if (!parsed.success) {
+    throw new Error(`ESPN scoreboard response validation failed: ${parsed.error.message}`);
+  }
+
   return response.events.flatMap((event) => {
     return event.competitions.flatMap((competition) => {
       const home = competition.competitors.find((c) => c.homeAway === 'home');
