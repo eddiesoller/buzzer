@@ -106,6 +106,38 @@ describe('Runner play cursor', () => {
     expect(saved.lastProcessedSeq).toBe(101);
   });
 
+  it('fires play-level rules in the terminal poll when game status is post', async () => {
+    const store = makeStore();
+    const runner = makeRunner(store);
+
+    // pollScoreboard already flipped status to 'post'; cursor was at seq 100
+    const game = makeGame({ id: 'g1', status: 'post', lastProcessedSeq: 100 });
+    runner['gameCache'].set('g1', game);
+
+    vi.spyOn(EspnClient.prototype, 'fetchGameSummary').mockResolvedValue({
+      boxscore: { teams: [], players: [] },
+      plays: [
+        // Seq 100: already processed, tied at 50-50
+        { id: '1', sequenceNumber: '100', scoringPlay: false,
+          homeScore: 50, awayScore: 50,
+          period: { number: 2, displayValue: '2nd Half' },
+          clock: { displayValue: '0:35' },
+          team: { id: 'home' }, text: 'Foul' },
+        // Seq 101: new go-ahead — home takes lead with 30 seconds left
+        { id: '2', sequenceNumber: '101', scoringPlay: true,
+          homeScore: 52, awayScore: 50,
+          period: { number: 2, displayValue: '2nd Half' },
+          clock: { displayValue: '0:30' },
+          team: { id: 'home' }, text: 'Jump shot' },
+      ],
+    });
+
+    await runner.pollGame('g1');
+
+    const evaluated = store.filterNewAlerts.mock.calls.flatMap((c) => c[0] as { rule: string }[]);
+    expect(evaluated.some((a) => a.rule === 'big-shot')).toBe(true);
+  });
+
   it('resets cursor and reprocesses all plays on sequence regression', async () => {
     const store = makeStore();
     const runner = makeRunner(store);

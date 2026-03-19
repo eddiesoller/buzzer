@@ -297,16 +297,14 @@ export class Runner {
       }
     }
 
-    // Run play-level rules on new plays — skip for finished games (handled by GameFinalRule)
-    if (isLive(game)) {
-      for (const play of newPlays) {
-        for (const rule of PLAY_RULES) {
-          try {
-            const alert = rule.evaluate(play, game);
-            if (alert) allAlerts.push(alert);
-          } catch (err) {
-            this.logger.warn({ err, rule: rule.name, gameId: game.id }, 'Play rule evaluation error');
-          }
+    // Run play-level rules on any new plays (including the terminal poll for finished games)
+    for (const play of newPlays) {
+      for (const rule of PLAY_RULES) {
+        try {
+          const alert = rule.evaluate(play, game);
+          if (alert) allAlerts.push(alert);
+        } catch (err) {
+          this.logger.warn({ err, rule: rule.name, gameId: game.id }, 'Play rule evaluation error');
         }
       }
     }
