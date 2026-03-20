@@ -70,6 +70,7 @@ export function playerCardContext(
     priority,
     playerName: player.playerName,
     teamName: team.name,
+    playerTeam: team,
     statLine,
     awayTeam: game.awayTeam,
     homeTeam: game.homeTeam,

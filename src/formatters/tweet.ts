@@ -31,9 +31,12 @@ function teamHashtag(team: Team): string {
 export function formatTweet(alert: Alert, game?: Game): string {
   const prefix = RULE_PREFIX[alert.rule] ?? PRIORITY_PREFIX[alert.priority];
   const headline = `${prefix} ${alert.headline}`;
-  const teamTags = game
-    ? `${teamHashtag(game.awayTeam)} ${teamHashtag(game.homeTeam)} `
-    : '';
+  const playerTeam = alert.context?.kind === 'player' ? alert.context.playerTeam : undefined;
+  const teamTags = playerTeam
+    ? `${teamHashtag(playerTeam)} `
+    : game
+      ? `${teamHashtag(game.awayTeam)} ${teamHashtag(game.homeTeam)} `
+      : '';
 
   // Step 1: headline + body + team tags + global tag
   const full = `${headline}\n\n${alert.body}\n\n${teamTags}${HASHTAG}`;

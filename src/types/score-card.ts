@@ -17,6 +17,7 @@ export interface PlayerCardContext {
   priority: AlertPriority;
   playerName: string;
   teamName: string;
+  playerTeam: Team;
   statLine: string;
   awayTeam: Team;
   homeTeam: Team;
