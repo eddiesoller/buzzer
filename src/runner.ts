@@ -11,6 +11,11 @@ import { formatTweet } from './formatters/tweet.js';
 import { Game, Play, isLive, isFinished } from './types/game.js';
 import { Alert } from './types/alert.js';
 
+export function earliestEtDate(games: Game[]): string {
+  const earliest = games.map((g) => g.startTime).sort()[0]!;
+  return new Date(earliest).toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+}
+
 async function withRetry<T>(
   fn: () => Promise<T>,
   { retries = 3, baseDelayMs = 500, logger }: { retries?: number; baseDelayMs?: number; logger?: Logger } = {}
@@ -373,13 +378,13 @@ export class Runner {
     const games = [...this.gameCache.values()];
     if (games.length === 0 || !games.every((g) => g.status === 'post')) return;
 
-    // Use Eastern time — tournament games run in US ET, and late-night games
-    // (past midnight UTC) would otherwise get tomorrow's UTC date as "today".
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-    if (await this.store.hasAlertFired(`daily-summary:${today}`)) return;
+    // Derive the game-day date from the earliest start time in ET.
+    // Games may complete after midnight ET, so we can't use "today".
+    const gameDate = earliestEtDate(games);
+    if (await this.store.hasAlertFired(`daily-summary:${gameDate}`)) return;
 
     try {
-      await postDailySummary(today, this.espn, this.notifiers, this.store, this.logger, this.dryRun);
+      await postDailySummary(gameDate, games, this.espn, this.notifiers, this.store, this.logger, this.dryRun);
     } catch (err) {
       this.logger.error({ err }, 'Failed to post daily summary');
     }

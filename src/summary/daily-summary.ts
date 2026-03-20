@@ -1,6 +1,5 @@
 import { Logger } from 'pino';
 import { EspnClient, EspnRateLimitError } from '../espn/client.js';
-import { parseScoreboard } from '../espn/scoreboard-parser.js';
 import { mergeSummaryIntoGame } from '../espn/summary-parser.js';
 import { StateStore } from '../state/store.js';
 import { Notifier } from '../notifiers/notifier.js';
@@ -119,6 +118,7 @@ export function buildSummaryThread(
 
 export async function postDailySummary(
   date: string,
+  scoreboardGames: Game[],
   client: EspnClient,
   notifiers: Notifier[],
   store: StateStore,
@@ -126,16 +126,6 @@ export async function postDailySummary(
   dryRun: boolean,
 ): Promise<void> {
   logger.info({ date }, 'Building daily summary');
-
-  let scoreboardGames: Game[];
-  try {
-    const espnDate = date.replace(/-/g, ''); // ESPN expects YYYYMMDD, not YYYY-MM-DD
-    const scoreboard = await client.fetchScoreboard(espnDate);
-    scoreboardGames = parseScoreboard(scoreboard);
-  } catch (err) {
-    logger.error({ err, date }, 'Failed to fetch scoreboard for daily summary');
-    return;
-  }
 
   if (scoreboardGames.length === 0) {
     logger.info({ date }, 'No games found for daily summary — skipping');

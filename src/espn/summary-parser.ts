@@ -15,7 +15,7 @@ const espnSummarySchema = z.object({
           stats: z.array(z.string()),
         })),
       })),
-    })),
+    })).optional(),
   }).optional(),
   plays: z.array(z.object({
     sequenceNumber: z.string(),

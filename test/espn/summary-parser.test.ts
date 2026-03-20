@@ -173,6 +173,13 @@ describe('mergeSummaryIntoGame', () => {
     expect(result.players).toBeUndefined();
   });
 
+  it('returns game unchanged when boxscore has no players', () => {
+    const game = makeGame();
+    const result = mergeSummaryIntoGame(game, { boxscore: { teams: [] } });
+    expect(result).toBe(game);
+    expect(result.players).toBeUndefined();
+  });
+
   it('parses plays from summary', () => {
     const game = makeGame();
     const result = mergeSummaryIntoGame(game, makeSummaryWithPlays());

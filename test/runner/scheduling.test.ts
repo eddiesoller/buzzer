@@ -7,7 +7,7 @@
  */
 import { describe, it, expect } from 'vitest';
 import pino from 'pino';
-import { Runner } from '../../src/runner.js';
+import { Runner, earliestEtDate } from '../../src/runner.js';
 import { makeGame } from '../rules/helpers.js';
 
 const CONFIGURED_MS = 2 * 60 * 1000; // 2 min
@@ -23,6 +23,30 @@ function makeRunner() {
   const logger = pino({ level: 'silent' });
   return new Runner(store as never, [], logger, true, 30);
 }
+
+describe('earliestEtDate', () => {
+  it('returns the ET date of a single game', () => {
+    const game = makeGame({ startTime: '2026-03-20T01:00:00Z' }); // 9 PM EDT on March 19
+    expect(earliestEtDate([game])).toBe('2026-03-19');
+  });
+
+  it('returns the earliest date when games span midnight ET', () => {
+    const earlyGame = makeGame({ id: 'g1', startTime: '2026-03-20T16:00:00Z' }); // noon EDT March 20
+    const lateGame = makeGame({ id: 'g2', startTime: '2026-03-20T01:00:00Z' });  // 9 PM EDT March 19
+    expect(earliestEtDate([earlyGame, lateGame])).toBe('2026-03-19');
+  });
+
+  it('returns ET date (not UTC date) for games starting late night UTC', () => {
+    // 2:00 AM UTC = 10 PM EDT the previous calendar day
+    const game = makeGame({ startTime: '2026-03-20T02:00:00Z' });
+    expect(earliestEtDate([game])).toBe('2026-03-19');
+  });
+
+  it('returns the correct date for afternoon ET games', () => {
+    const game = makeGame({ startTime: '2026-03-20T17:00:00Z' }); // 1 PM EDT March 20
+    expect(earliestEtDate([game])).toBe('2026-03-20');
+  });
+});
 
 describe('Runner.nextScoreboardPollMs', () => {
   it('returns configuredIntervalMs when cache is empty', () => {
