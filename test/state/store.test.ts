@@ -68,6 +68,28 @@ function makeMockDb() {
   };
 }
 
+describe('StateStore.hasAlertFired', () => {
+  it('returns false when alert has not fired', async () => {
+    const db = makeMockDb();
+    const store = new StateStore(db as any);
+    expect(await store.hasAlertFired('daily-summary:2026-03-19')).toBe(false);
+  });
+
+  it('returns true when alert has fired', async () => {
+    const db = makeMockDb();
+    db.firedAlerts.set('daily-summary:2026-03-19', true);
+    const store = new StateStore(db as any);
+    expect(await store.hasAlertFired('daily-summary:2026-03-19')).toBe(true);
+  });
+
+  it('is case-sensitive', async () => {
+    const db = makeMockDb();
+    db.firedAlerts.set('daily-summary:2026-03-19', true);
+    const store = new StateStore(db as any);
+    expect(await store.hasAlertFired('daily-summary:2026-03-20')).toBe(false);
+  });
+});
+
 describe('StateStore.filterNewAlerts', () => {
   it('returns all alerts when none have fired', async () => {
     const db = makeMockDb();

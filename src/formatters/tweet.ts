@@ -24,12 +24,17 @@ function teamHashtag(team: Team): string {
   return `#${derived}`;
 }
 
+/** Returns the emoji prefix for an alert (rule-specific or priority-based). */
+export function getAlertPrefix(alert: Alert): string {
+  return RULE_PREFIX[alert.rule] ?? PRIORITY_PREFIX[alert.priority];
+}
+
 /**
  * Formats an alert into a tweet ≤ 280 characters.
  * Truncation cascade: full → drop body → drop body+team tags → truncate headline.
  */
 export function formatTweet(alert: Alert, game?: Game): string {
-  const prefix = RULE_PREFIX[alert.rule] ?? PRIORITY_PREFIX[alert.priority];
+  const prefix = getAlertPrefix(alert);
   const headline = `${prefix} ${alert.headline}`;
   const playerTeam = alert.context?.kind === 'player' ? alert.context.playerTeam : undefined;
   const teamTags = playerTeam

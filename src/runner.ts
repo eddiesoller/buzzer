@@ -4,20 +4,8 @@ import { EspnClient } from './espn/client.js';
 import { parseScoreboard } from './espn/scoreboard-parser.js';
 import { mergeSummaryIntoGame } from './espn/summary-parser.js';
 import { StateStore } from './state/store.js';
-import { AlertRule } from './rules/rule.js';
-import { PlayRule } from './rules/play-rule.js';
-import { CloseGameRule } from './rules/close-game.js';
-import { UpsetBrewingRule } from './rules/upset-brewing.js';
-import { ScoringRunRule } from './rules/scoring-run.js';
-import { ComebackRule } from './rules/comeback.js';
-import { OvertimeRule } from './rules/overtime.js';
-import { GameFinalRule } from './rules/game-final.js';
-import { ScoringMilestoneRule } from './rules/scoring-milestone.js';
-import { TripleDoubleRule } from './rules/triple-double.js';
-import { QuadrupleDoubleRule } from './rules/quadruple-double.js';
-import { FiveByFiveRule } from './rules/five-by-five.js';
-import { GooseEggRule } from './rules/goose-egg.js';
-import { BigShotRule } from './rules/big-shot.js';
+import { SCOREBOARD_RULES, BOX_SCORE_RULES, PLAY_RULES } from './rules/index.js';
+import { postDailySummary } from './summary/daily-summary.js';
 import { Notifier } from './notifiers/notifier.js';
 import { formatTweet } from './formatters/tweet.js';
 import { Game, Play, isLive, isFinished } from './types/game.js';
@@ -43,24 +31,6 @@ async function withRetry<T>(
   throw lastErr;
 }
 
-const SCOREBOARD_RULES: AlertRule[] = [
-  new CloseGameRule(),
-  new UpsetBrewingRule(),
-  new ScoringRunRule(),
-  new ComebackRule(),
-  new OvertimeRule(),
-  new GameFinalRule(),
-];
-
-const BOX_SCORE_RULES: AlertRule[] = [
-  new ScoringMilestoneRule(),
-  new TripleDoubleRule(),
-  new QuadrupleDoubleRule(),
-  new FiveByFiveRule(),
-  new GooseEggRule(),
-];
-
-const PLAY_RULES: PlayRule[] = [new BigShotRule()];
 
 export class Runner {
   private espn: EspnClient;
@@ -140,6 +110,7 @@ export class Runner {
     // rules are evaluated before the watcher shuts down. Stopping from here would evict the game
     // from the cache, causing pollGame() to return early without evaluating final rules.
 
+    await this.maybePostDailySummary();
     await this.pingHealthcheck();
   }
 
@@ -396,6 +367,22 @@ export class Runner {
 
     // Always save game snapshot (persists lastProcessedSeq)
     await this.store.saveGame(game);
+  }
+
+  private async maybePostDailySummary(): Promise<void> {
+    const games = [...this.gameCache.values()];
+    if (games.length === 0 || !games.every((g) => g.status === 'post')) return;
+
+    // Use Eastern time — tournament games run in US ET, and late-night games
+    // (past midnight UTC) would otherwise get tomorrow's UTC date as "today".
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    if (await this.store.hasAlertFired(`daily-summary:${today}`)) return;
+
+    try {
+      await postDailySummary(today, this.espn, this.notifiers, this.store, this.logger, this.dryRun);
+    } catch (err) {
+      this.logger.error({ err }, 'Failed to post daily summary');
+    }
   }
 
   private async pingHealthcheck(): Promise<void> {

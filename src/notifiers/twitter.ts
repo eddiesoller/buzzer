@@ -34,6 +34,32 @@ export class TwitterNotifier implements Notifier {
     return { id: data.id, username: data.username };
   }
 
+  async sendThread(tweets: string[]): Promise<void> {
+    if (tweets.length === 0) return;
+    let lastTweetId: string | undefined;
+    for (let i = 0; i < tweets.length; i++) {
+      const tweetText = tweets[i];
+      const opts = lastTweetId
+        ? { reply: { in_reply_to_tweet_id: lastTweetId } }
+        : undefined;
+      try {
+        const result = await this.client.v2.tweet(tweetText, opts);
+        this.logger.info(
+          { tweetId: result.data.id },
+          `Thread tweet ${i + 1}/${tweets.length} posted`
+        );
+        lastTweetId = result.data.id;
+      } catch (err: unknown) {
+        if (err && typeof err === 'object' && 'code' in err && err.code === 429) {
+          this.logger.warn({ tweetIndex: i + 1 }, 'Twitter rate limit (429) — stopping thread');
+          return;
+        }
+        this.logger.error({ err, tweetIndex: i + 1 }, 'Failed to post thread tweet');
+        throw err;
+      }
+    }
+  }
+
   async send(alert: Alert, tweetText: string): Promise<void> {
     let mediaId: string | undefined;
     if (alert.context) {

@@ -65,6 +65,16 @@ export class StateStore {
       .execute();
   }
 
+  /** Check if a specific alert has already been fired */
+  async hasAlertFired(alertId: string): Promise<boolean> {
+    const row = await this.db
+      .selectFrom('fired_alerts')
+      .select('alert_id')
+      .where('alert_id', '=', alertId)
+      .executeTakeFirst();
+    return row !== undefined;
+  }
+
   /** Filter out already-fired alerts */
   async filterNewAlerts(alerts: Alert[]): Promise<Alert[]> {
     if (alerts.length === 0) return [];
