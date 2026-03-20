@@ -29,7 +29,7 @@ export class ScoringMilestoneRule implements AlertRule {
         rule: this.name,
         gameId: game.id,
         headline: `${player.playerName} hits ${achieved}+ points! (${player.points} pts)`,
-        body: `${formatScore(game.awayTeam, game.homeTeam)} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock} | FG: ${player.fieldGoalsMade}/${player.fieldGoalsAttempted}`,
+        body: `${formatScore(game.awayTeam, game.homeTeam)} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock} | 2FG: ${player.fieldGoalsMade - player.threePointMade}/${player.fieldGoalsAttempted - player.threePointAttempted} | 3FG: ${player.threePointMade}/${player.threePointAttempted} | FT: ${player.freeThrowsMade}/${player.freeThrowsAttempted}`,
         priority,
         createdAt: new Date(),
         context: playerCardContext(player, team, `${player.points} PTS`, game, priority),

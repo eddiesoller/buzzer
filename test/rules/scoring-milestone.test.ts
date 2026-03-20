@@ -47,11 +47,11 @@ describe('ScoringMilestoneRule', () => {
     expect(alerts[0]!.id).not.toContain(':30');
   });
 
-  it('body includes score, period, clock, and FG line', () => {
-    const player = makePlayer({ playerId: 'p1', points: 30, fieldGoalsMade: 12, fieldGoalsAttempted: 20 });
+  it('body includes score, period, clock, and shooting lines', () => {
+    const player = makePlayer({ playerId: 'p1', points: 30, fieldGoalsMade: 12, fieldGoalsAttempted: 20, threePointMade: 3, threePointAttempted: 7, freeThrowsMade: 3, freeThrowsAttempted: 4 });
     const game = makeGame({ players: [player] });
     const alerts = rule.evaluate(game);
-    expect(alerts[0]!.body).toBe('AWAY 45, HOME 50 | 2nd Half | 10:00 | FG: 12/20');
+    expect(alerts[0]!.body).toBe('AWAY 45, HOME 50 | 2nd Half | 10:00 | 2FG: 9/13 | 3FG: 3/7 | FT: 3/4');
   });
 
   it('does not fire below 30 points', () => {
