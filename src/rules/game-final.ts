@@ -78,7 +78,7 @@ export class GameFinalRule implements AlertRule {
       body: `Final: ${score}`,
       priority,
       createdAt: new Date(),
-      context: gameCardContext(game, 'FINAL', priority),
+      context: gameCardContext(game, `${winner.shortName} Wins`, priority),
     }];
   }
 }
