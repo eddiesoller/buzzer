@@ -396,7 +396,9 @@ export class Runner {
       await axios.get(this.healthcheckUrl, { timeout: 5000 });
       this.logger.debug('Healthcheck pinged');
     } catch (err) {
-      this.logger.warn({ err }, 'Healthcheck ping failed');
+      const code = (err as NodeJS.ErrnoException).code ?? 'UNKNOWN';
+      const message = err instanceof Error ? err.message : String(err);
+      this.logger.warn(`Healthcheck ping failed: ${code} ${message}`);
     }
   }
 }
