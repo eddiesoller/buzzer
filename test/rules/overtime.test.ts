@@ -49,4 +49,40 @@ describe('OvertimeRule', () => {
   it('does not fire for pre-game', () => {
     expect(rule.evaluate(makeGame({ status: 'pre', period: 0 }))).toHaveLength(0);
   });
+
+  it('fires at end of tied regulation (period 2, clock 0, tied)', () => {
+    const game = makeGame({
+      period: 2,
+      clockSeconds: 0,
+      homeTeam: { ...makeGame().homeTeam, score: 60 },
+      awayTeam: { ...makeGame().awayTeam, score: 60 },
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.id).toBe('overtime:game1:3');
+    expect(alerts[0]!.headline).toContain('OT');
+  });
+
+  it('does not fire at end of regulation when not tied', () => {
+    const game = makeGame({
+      period: 2,
+      clockSeconds: 0,
+      homeTeam: { ...makeGame().homeTeam, score: 62 },
+      awayTeam: { ...makeGame().awayTeam, score: 60 },
+    });
+    expect(rule.evaluate(game)).toHaveLength(0);
+  });
+
+  it('fires at end of tied OT1 (period 3, clock 0, tied)', () => {
+    const game = makeGame({
+      period: 3,
+      clockSeconds: 0,
+      homeTeam: { ...makeGame().homeTeam, score: 65 },
+      awayTeam: { ...makeGame().awayTeam, score: 65 },
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.id).toBe('overtime:game1:4');
+    expect(alerts[0]!.headline).toContain('2OT');
+  });
 });
