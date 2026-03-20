@@ -7,8 +7,7 @@ import { ComebackRule } from './comeback.js';
 import { OvertimeRule } from './overtime.js';
 import { GameFinalRule } from './game-final.js';
 import { ScoringMilestoneRule } from './scoring-milestone.js';
-import { TripleDoubleRule } from './triple-double.js';
-import { QuadrupleDoubleRule } from './quadruple-double.js';
+import { MultiDoubleRule } from './multi-double.js';
 import { FiveByFiveRule } from './five-by-five.js';
 import { GooseEggRule } from './goose-egg.js';
 import { BigShotRule } from './big-shot.js';
@@ -24,8 +23,7 @@ export const SCOREBOARD_RULES: AlertRule[] = [
 
 export const BOX_SCORE_RULES: AlertRule[] = [
   new ScoringMilestoneRule(),
-  new TripleDoubleRule(),
-  new QuadrupleDoubleRule(),
+  new MultiDoubleRule(),
   new FiveByFiveRule(),
   new GooseEggRule(),
 ];

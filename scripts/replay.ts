@@ -17,8 +17,7 @@ import { mergeSummaryIntoGame } from '../src/espn/summary-parser.js';
 import { GameFinalRule } from '../src/rules/game-final.js';
 import { ScoringMilestoneRule } from '../src/rules/scoring-milestone.js';
 import { OvertimeRule } from '../src/rules/overtime.js';
-import { TripleDoubleRule } from '../src/rules/triple-double.js';
-import { QuadrupleDoubleRule } from '../src/rules/quadruple-double.js';
+import { MultiDoubleRule } from '../src/rules/multi-double.js';
 import { FiveByFiveRule } from '../src/rules/five-by-five.js';
 import { GooseEggRule } from '../src/rules/goose-egg.js';
 import { ScoringRunRule } from '../src/rules/scoring-run.js';
@@ -36,8 +35,7 @@ const SNAPSHOT_RULES: AlertRule[] = [
   new ScoringMilestoneRule(),
   new ScoringRunRule(),
   new ComebackRule(),
-  new TripleDoubleRule(),
-  new QuadrupleDoubleRule(),
+  new MultiDoubleRule(),
   new FiveByFiveRule(),
   new GooseEggRule(),
 ];
