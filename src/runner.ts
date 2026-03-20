@@ -18,7 +18,7 @@ export function earliestEtDate(games: Game[]): string {
 
 async function withRetry<T>(
   fn: () => Promise<T>,
-  { retries = 3, baseDelayMs = 500, logger }: { retries?: number; baseDelayMs?: number; logger?: Logger } = {}
+  { retries = 3, baseDelayMs = 500, logger, context }: { retries?: number; baseDelayMs?: number; logger?: Logger; context?: string } = {}
 ): Promise<T> {
   let lastErr: unknown;
   for (let attempt = 0; attempt <= retries; attempt++) {
@@ -28,7 +28,7 @@ async function withRetry<T>(
       lastErr = err;
       if (attempt < retries) {
         const errMsg = err instanceof Error ? err.message : String(err);
-        logger?.warn({ attempt: attempt + 1, retries, err: errMsg }, `Retrying (attempt ${attempt + 1}/${retries})`);
+        logger?.warn({ attempt: attempt + 1, retries, err: errMsg, context }, `Retrying (attempt ${attempt + 1}/${retries})`);
         await new Promise((r) => setTimeout(r, baseDelayMs * 2 ** attempt));
       }
     }
@@ -180,7 +180,7 @@ export class Runner {
   private async fetchGames(): Promise<Game[] | null> {
     this.logger.info('Polling ESPN scoreboard...');
     try {
-      const scoreboard = await withRetry(() => this.espn.fetchScoreboard(), { logger: this.logger });
+      const scoreboard = await withRetry(() => this.espn.fetchScoreboard(), { logger: this.logger, context: "fetchScoreboard" });
       const games = parseScoreboard(scoreboard);
       this.logger.debug({ count: games.length }, 'Parsed games');
       return games;
@@ -240,7 +240,7 @@ export class Runner {
       // Fetch summary and merge into cached game snapshot
       let game = cachedGame;
       try {
-        const summary = await withRetry(() => this.espn.fetchGameSummary(gameId), { logger: this.logger });
+        const summary = await withRetry(() => this.espn.fetchGameSummary(gameId), { logger: this.logger, context: `fetchGameSummary(${gameId})` });
         game = mergeSummaryIntoGame(cachedGame, summary);
       } catch (err) {
         this.logger.warn({ err, gameId }, 'Failed to fetch game summary');
