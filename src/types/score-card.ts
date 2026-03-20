@@ -10,6 +10,7 @@ export interface GameCardContext {
   clock: string;
   status: GameStatus;
   label: string;
+  halftime?: boolean;
 }
 
 export interface PlayerCardContext {
@@ -24,6 +25,7 @@ export interface PlayerCardContext {
   period: number;
   clock: string;
   status: GameStatus;
+  halftime?: boolean;
 }
 
 export interface PlayCardContext {

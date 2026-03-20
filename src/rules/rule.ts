@@ -55,6 +55,7 @@ export function gameCardContext(game: Game, label: string, priority: AlertPriori
     clock: game.clock,
     status: game.status,
     label,
+    halftime: game.halftime,
   };
 }
 
@@ -77,6 +78,7 @@ export function playerCardContext(
     period: game.period,
     clock: game.clock,
     status: game.status,
+    halftime: game.halftime,
   };
 }
 

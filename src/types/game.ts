@@ -68,6 +68,8 @@ export interface Game {
   homeWinPct?: number;
   /** Win probability for away team (0–1), from ESPN scoreboard. Absent if not provided. */
   awayWinPct?: number;
+  /** True when ESPN reports STATUS_HALFTIME */
+  halftime?: boolean;
   startTime: string;
   venue?: string;
 }

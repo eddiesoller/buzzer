@@ -100,6 +100,17 @@ describe('UpsetBrewingRule', () => {
     expect(rule.evaluate(game)).toHaveLength(1);
   });
 
+  it('fires at halftime and shows correct body', () => {
+    const game = makeGame({
+      period: 1, status: 'in', clockSeconds: 0, halftime: true,
+      homeTeam: lowSeed, awayTeam: highSeed, homeWinPct: 0.96,
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts).toHaveLength(1);
+    expect(alerts[0]!.body).toContain('Halftime');
+    expect(alerts[0]!.body).not.toContain('2nd Half');
+  });
+
   it('does not fire when win prob < 35%', () => {
     const game = makeGame({ period: 2, status: 'in', clockSeconds: 60,
       homeTeam: lowSeed, awayTeam: highSeed, homeWinPct: 0.20 });

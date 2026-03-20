@@ -29,6 +29,7 @@ const espnScoreboardSchema = z.object({
         period: z.number(),
         type: z.object({
           state: z.enum(['pre', 'in', 'post']),
+          name: z.string().optional(),
         }),
       }),
       venue: z.object({
@@ -63,6 +64,7 @@ export function parseScoreboard(response: EspnScoreboardResponse): Game[] {
       const status = competition.status;
       const gameStatus = status.type.state as GameStatus;
       const clockSeconds = Math.round(status.clock);
+      const halftime = status.type.name === 'STATUS_HALFTIME';
 
       const game: Game = {
         id: event.id,
@@ -70,6 +72,7 @@ export function parseScoreboard(response: EspnScoreboardResponse): Game[] {
         period: status.period,
         clock: status.displayClock,
         clockSeconds,
+        halftime,
         homeTeam: parseTeam(home),
         awayTeam: parseTeam(away),
         startTime: competition.date,

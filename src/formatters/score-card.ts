@@ -163,8 +163,8 @@ function footer(text: string, accent: string): string {
 function buildGameSvg(ctx: GameCardContext, logos: { away: string | null; home: string | null }): string {
   const { awayTeam, homeTeam, period, clock, status, label, priority } = ctx;
   const accent = accentFor(priority);
-  const periodLabel = periodStr(period, status);
-  const clockStr = status === 'post' ? '' : `  ·  ${clock}`;
+  const periodLabel = ctx.halftime ? 'HALFTIME' : periodStr(period, status);
+  const clockStr = (status === 'post' || ctx.halftime) ? '' : `  ·  ${clock}`;
   const awayLeads = awayTeam.score > homeTeam.score;
   const homeLeads = homeTeam.score > awayTeam.score;
 
@@ -226,8 +226,8 @@ function statBoxes(stats: ParsedStat[], accent: string, boxY = 308): string {
 function buildPlayerSvg(ctx: PlayerCardContext, playerLogo: string | null): string {
   const { playerName, teamName, statLine, awayTeam, homeTeam, period, clock, status, priority } = ctx;
   const accent = accentFor(priority);
-  const periodLabel = periodStr(period, status);
-  const clockStr = status === 'post' ? '' : `  ·  ${clock}`;
+  const periodLabel = ctx.halftime ? 'HALFTIME' : periodStr(period, status);
+  const clockStr = (status === 'post' || ctx.halftime) ? '' : `  ·  ${clock}`;
   const scoreStr = `${awayTeam.abbreviation} ${awayTeam.score}  —  ${homeTeam.abbreviation} ${homeTeam.score}`;
 
   const nameFontSize = playerName.length > 20 ? 60 : playerName.length > 15 ? 70 : 82;

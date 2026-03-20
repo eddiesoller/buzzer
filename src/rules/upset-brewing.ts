@@ -39,7 +39,7 @@ export class UpsetBrewingRule implements AlertRule {
       rule: this.name,
       gameId: game.id,
       headline: `UPSET ALERT: #${higherSeed.seed} ${higherSeed.shortName} leads #${lowerSeed.seed} ${lowerSeed.shortName}!`,
-      body: `${score} | ${game.clock} - 2nd Half | ${seedDiff}-seed diff${underdogPctStr}`,
+      body: `${score} | ${game.halftime ? 'Halftime' : `${game.clock} - 2nd Half`} | ${seedDiff}-seed diff${underdogPctStr}`,
       priority: 'high',
       createdAt: new Date(),
       context: gameCardContext(game, 'UPSET ALERT', 'high'),
