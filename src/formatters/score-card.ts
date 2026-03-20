@@ -65,7 +65,7 @@ function labelPill(label: string, accent: string, priority: AlertPriority, pillY
   const textColor = WHITE;
   return `
     <rect x="${pillX}" y="${pillY}" width="${pillW}" height="${pillH}" rx="${pillH / 2}" fill="${accent}"/>
-    <text x="${W / 2}" y="${cy}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="800"
+    <text x="${W / 2}" y="${cy}" font-family="Noto Sans, sans-serif" font-size="${fontSize}" font-weight="800"
       fill="${textColor}" text-anchor="middle" dominant-baseline="middle" letter-spacing="3">${esc(label)}</text>
   `;
 }
@@ -76,7 +76,7 @@ function seedBadge(seed: number | undefined, cx: number, cy: number, accent: str
   const fs = seed >= 10 ? 16 : 20;
   return `
     <circle cx="${cx}" cy="${cy}" r="28" fill="${accent}"/>
-    <text x="${cx}" y="${cy}" font-family="Arial, sans-serif" font-size="${fs}" font-weight="800"
+    <text x="${cx}" y="${cy}" font-family="Noto Sans, sans-serif" font-size="${fs}" font-weight="800"
       fill="${WHITE}" text-anchor="middle" dominant-baseline="middle">${seed}</text>
   `;
 }
@@ -93,12 +93,12 @@ function teamRow(team: Team, score: number, yMid: number, isLeading: boolean, ac
 
   return `
     ${seedBadge(team.seed, 68, yMid, accent)}
-    <text x="${leftPad}" y="${yMid}" font-family="Arial, sans-serif" font-size="${nameFontSize}" font-weight="800"
+    <text x="${leftPad}" y="${yMid}" font-family="Noto Sans, sans-serif" font-size="${nameFontSize}" font-weight="800"
       fill="${WHITE}" dominant-baseline="middle">${esc(team.shortName)}</text>
     ${team.record ? `
-    <text x="${leftPad}" y="${recordY}" font-family="Arial, sans-serif" font-size="24"
+    <text x="${leftPad}" y="${recordY}" font-family="Noto Sans, sans-serif" font-size="24"
       fill="${MUTED}" dominant-baseline="hanging">${esc(team.record)}</text>` : ''}
-    <text x="${W - 72}" y="${yMid}" font-family="Arial, sans-serif" font-size="104" font-weight="800"
+    <text x="${W - 72}" y="${yMid}" font-family="Noto Sans, sans-serif" font-size="104" font-weight="800"
       fill="${scoreColor}" text-anchor="end" dominant-baseline="middle">${score}</text>
   `;
 }
@@ -111,7 +111,7 @@ function footer(text: string, accent: string): string {
   return `
     <rect x="0" y="${H - 86}" width="${W}" height="86" fill="${SURFACE}"/>
     <rect x="0" y="${H - 86}" width="${W}" height="2" fill="${accent}" fill-opacity="0.5"/>
-    <text x="${W / 2}" y="${H - 43}" font-family="Arial, sans-serif" font-size="30" font-weight="600"
+    <text x="${W / 2}" y="${H - 43}" font-family="Noto Sans, sans-serif" font-size="30" font-weight="600"
       fill="${MUTED}" text-anchor="middle" dominant-baseline="middle" letter-spacing="1.5">${esc(text)}</text>
   `;
 }
@@ -176,9 +176,9 @@ function statBoxes(stats: ParsedStat[], accent: string): string {
     return `
       <rect x="${x}" y="${boxY}" width="${boxW}" height="${boxH}" rx="14" fill="${SURFACE}"/>
       <rect x="${x}" y="${boxY}" width="${boxW}" height="4" rx="2" fill="${accent}" fill-opacity="0.7"/>
-      <text x="${cx}" y="${boxY + boxH * 0.44}" font-family="Arial, sans-serif" font-size="${valueFontSize}" font-weight="800"
+      <text x="${cx}" y="${boxY + boxH * 0.44}" font-family="Noto Sans, sans-serif" font-size="${valueFontSize}" font-weight="800"
         fill="${WHITE}" text-anchor="middle" dominant-baseline="middle">${esc(stat.value)}</text>
-      <text x="${cx}" y="${boxY + boxH * 0.82}" font-family="Arial, sans-serif" font-size="23" font-weight="700"
+      <text x="${cx}" y="${boxY + boxH * 0.82}" font-family="Noto Sans, sans-serif" font-size="23" font-weight="700"
         fill="${MUTED}" text-anchor="middle" dominant-baseline="middle" letter-spacing="2">${esc(stat.label)}</text>
     `;
   }).join('');
@@ -198,7 +198,7 @@ function buildPlayerSvg(ctx: PlayerCardContext): string {
     : `
       <rect x="120" y="312" width="${W - 240}" height="144" rx="14" fill="${SURFACE}"/>
       <rect x="120" y="312" width="${W - 240}" height="4" rx="2" fill="${accent}" fill-opacity="0.7"/>
-      <text x="${W / 2}" y="384" font-family="Arial, sans-serif" font-size="52" font-weight="700"
+      <text x="${W / 2}" y="384" font-family="Noto Sans, sans-serif" font-size="52" font-weight="700"
         fill="${WHITE}" text-anchor="middle" dominant-baseline="middle" letter-spacing="4">${esc(statLine)}</text>
     `;
 
@@ -208,21 +208,21 @@ function buildPlayerSvg(ctx: PlayerCardContext): string {
     <rect x="0" y="0" width="${W}" height="6" fill="${accent}"/>
 
     <!-- Player name -->
-    <text x="${W / 2}" y="178" font-family="Arial, sans-serif" font-size="${nameFontSize}" font-weight="800"
+    <text x="${W / 2}" y="178" font-family="Noto Sans, sans-serif" font-size="${nameFontSize}" font-weight="800"
       fill="${WHITE}" text-anchor="middle" dominant-baseline="middle">${esc(playerName)}</text>
 
     <!-- Accent underline -->
     <rect x="${W / 2 - 120}" y="224" width="240" height="5" rx="2.5" fill="${accent}"/>
 
     <!-- Team name -->
-    <text x="${W / 2}" y="262" font-family="Arial, sans-serif" font-size="30" font-weight="500"
+    <text x="${W / 2}" y="262" font-family="Noto Sans, sans-serif" font-size="30" font-weight="500"
       fill="${MUTED}" text-anchor="middle" dominant-baseline="middle" letter-spacing="1">${esc(teamName)}</text>
 
     <!-- Stat boxes -->
     ${statsContent}
 
     <!-- Score line -->
-    <text x="${W / 2}" y="516" font-family="Arial, sans-serif" font-size="32" font-weight="500"
+    <text x="${W / 2}" y="516" font-family="Noto Sans, sans-serif" font-size="32" font-weight="500"
       fill="${LIGHT}" text-anchor="middle" dominant-baseline="middle" letter-spacing="1">${esc(scoreStr)}</text>
 
     ${footer(periodLabel + clockStr, accent)}
@@ -257,7 +257,7 @@ function buildPlaySvg(ctx: PlayCardContext): string {
 
     ${labelPill(label, accent, priority)}
 
-    ${playerName ? `<text x="${W / 2}" y="158" font-family="Arial, sans-serif" font-size="${playerFontSize}" font-weight="600"
+    ${playerName ? `<text x="${W / 2}" y="158" font-family="Noto Sans, sans-serif" font-size="${playerFontSize}" font-weight="600"
       fill="${LIGHT}" text-anchor="middle" dominant-baseline="middle">${esc(playerName)}</text>` : ''}
 
     ${teamRow(awayDisplay, awayScore, awayY, awayLeads, accent)}
