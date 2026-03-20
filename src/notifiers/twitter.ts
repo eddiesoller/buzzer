@@ -3,6 +3,7 @@ import { Logger } from 'pino';
 import { Alert } from '../types/alert.js';
 import { Notifier } from './notifier.js';
 import { Config } from '../config.js';
+import { generateScoreCard } from '../formatters/score-card.js';
 
 export class TwitterNotifier implements Notifier {
   private client: TwitterApi;
@@ -34,8 +35,18 @@ export class TwitterNotifier implements Notifier {
   }
 
   async send(alert: Alert, tweetText: string): Promise<void> {
+    let mediaId: string | undefined;
+    if (alert.context) {
+      try {
+        const buf = await generateScoreCard(alert.context);
+        mediaId = await this.client.v1.uploadMedia(buf, { mimeType: 'image/png' });
+      } catch (err) {
+        this.logger.warn({ err, alertId: alert.id }, 'Score card generation failed — text-only fallback');
+      }
+    }
+    const tweetOpts = mediaId ? { media: { media_ids: [mediaId] as [string] } } : undefined;
     try {
-      const result = await this.client.v2.tweet(tweetText);
+      const result = await this.client.v2.tweet(tweetText, tweetOpts);
       this.logger.info(
         { tweetId: result.data.id, alertId: alert.id },
         `Tweet posted: ${alert.headline}`

@@ -1,3 +1,5 @@
+import { ScoreCardContext } from './score-card.js';
+
 export type AlertPriority = 'low' | 'medium' | 'high';
 
 export interface Alert {
@@ -9,4 +11,5 @@ export interface Alert {
   body: string;
   priority: AlertPriority;
   createdAt: Date;
+  context?: ScoreCardContext;
 }

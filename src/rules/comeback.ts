@@ -1,6 +1,6 @@
 import { Game, isLive, isFinished } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore, formatWinPct } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, formatWinPct, gameCardContext } from './rule.js';
 
 const COMEBACK_DEFICIT = 15;
 
@@ -44,6 +44,7 @@ export class ComebackRule implements AlertRule {
           body,
           priority: 'high',
           createdAt: new Date(),
+          context: gameCardContext(game, 'COMEBACK', 'high'),
         }];
       }
     }

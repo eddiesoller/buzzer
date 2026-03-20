@@ -1,6 +1,6 @@
 import { Game, isLive, estimateSecondsRemaining } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, gameCardContext } from './rule.js';
 
 export class UpsetBrewingRule implements AlertRule {
   readonly name = 'upset-brewing';
@@ -42,6 +42,7 @@ export class UpsetBrewingRule implements AlertRule {
       body: `${score} | ${game.clock} - 2nd Half | ${seedDiff}-seed diff${underdogPctStr}`,
       priority: 'high',
       createdAt: new Date(),
+      context: gameCardContext(game, 'UPSET ALERT', 'high'),
     }];
   }
 }

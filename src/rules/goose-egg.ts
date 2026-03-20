@@ -1,6 +1,6 @@
 import { Game, isFinished, getPlayerTeam } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, playerCardContext } from './rule.js';
 
 const MIN_MINUTES = 20;
 
@@ -25,6 +25,7 @@ export class GooseEggRule implements AlertRule {
         body: `${formatScore(game.awayTeam, game.homeTeam)} | ${game.clock}`,
         priority: 'low',
         createdAt: new Date(),
+        context: playerCardContext(player, team, '0 PTS  0 REB  0 AST', game, 'low'),
       });
     }
 

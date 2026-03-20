@@ -1,6 +1,6 @@
 import { Game, margin, isFinished, leadingTeam } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore, otLabel } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, otLabel, gameCardContext } from './rule.js';
 import { pick, WIN_VERBS, BLOWOUT_VERBS, CLOSE_WIN_VERBS } from './synonyms.js';
 
 const BLOWOUT_MARGIN = 30;
@@ -78,6 +78,7 @@ export class GameFinalRule implements AlertRule {
       body: `Final: ${score}`,
       priority,
       createdAt: new Date(),
+      context: gameCardContext(game, 'FINAL', priority),
     }];
   }
 }

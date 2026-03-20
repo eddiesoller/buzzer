@@ -1,6 +1,6 @@
 import { Game, margin, estimateSecondsRemaining, isLive, leadingTeam } from '../types/game.js';
 import { Alert, AlertPriority } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore, formatWinPct } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, formatWinPct, gameCardContext } from './rule.js';
 
 const CLOSE_GAME_MARGIN = 5;
 const CLOSE_GAME_SECONDS_REMAINING = 5 * 60;
@@ -51,6 +51,7 @@ export class CloseGameRule implements AlertRule {
       body,
       priority,
       createdAt: new Date(),
+      context: gameCardContext(game, 'CLOSE GAME', priority),
     }];
   }
 }

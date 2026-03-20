@@ -1,5 +1,6 @@
 import { Play, Game, PlayerStats, Team } from '../types/game.js';
 import { Alert } from '../types/alert.js';
+import { PlayCardContext } from '../types/score-card.js';
 import { PlayRule } from './play-rule.js';
 import { makeAlertId } from './rule.js';
 
@@ -89,21 +90,40 @@ export class BigShotRule implements PlayRule {
     const playerPrefix = player ? `${player.playerName} - ` : '';
 
     let shotDesc: string;
+    let cardLabel: string;
     if (isBuzzerBeater && isLongRange) {
       shotDesc = `${distanceFt}-foot buzzer beater!`;
+      cardLabel = 'BUZZER BEATER';
     } else if (isBuzzerBeater) {
       shotDesc = 'Buzzer beater!';
+      cardLabel = 'BUZZER BEATER';
     } else if (isGoAhead && isLongRange) {
       shotDesc = `Go-ahead ${distanceFt}-foot shot!`;
+      cardLabel = 'GO-AHEAD SHOT';
     } else if (isGoAhead) {
       shotDesc = isFreethrow ? 'Go-ahead free throw!' : 'Go-ahead basket!';
+      cardLabel = 'GO-AHEAD SHOT';
     } else {
       shotDesc = `${distanceFt}-foot shot!`;
+      cardLabel = 'LONG RANGE';
     }
 
     const headline = `${playerPrefix}${shotDesc}`;
     const scoreStr = `${game.awayTeam.abbreviation} ${play.awayScore}, ${game.homeTeam.abbreviation} ${play.homeScore}`;
     const teamPrefix = team ? `${team.abbreviation} | ` : '';
+
+    const context: PlayCardContext = {
+      kind: 'play',
+      priority,
+      awayTeam: game.awayTeam,
+      homeTeam: game.homeTeam,
+      awayScore: play.awayScore,
+      homeScore: play.homeScore,
+      period: play.period,
+      clock: play.clockDisplay,
+      label: cardLabel,
+      playerName: player?.playerName,
+    };
 
     return {
       id: makeAlertId(this.name, game.id, String(play.sequenceNumber)),
@@ -113,6 +133,7 @@ export class BigShotRule implements PlayRule {
       body: `${teamPrefix}${scoreStr} | ${play.clockDisplay}`,
       priority,
       createdAt: new Date(),
+      context,
     };
   }
 }

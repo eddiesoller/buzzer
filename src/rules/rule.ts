@@ -1,5 +1,6 @@
 import { Game, PlayerStats, Team, estimateSecondsRemaining, getPlayerTeam } from '../types/game.js';
-import { Alert } from '../types/alert.js';
+import { Alert, AlertPriority } from '../types/alert.js';
+import { GameCardContext, PlayerCardContext } from '../types/score-card.js';
 
 export interface AlertRule {
   readonly name: string;
@@ -42,6 +43,40 @@ export function formatWinPct(game: Game, team: Team): string | null {
   const rounded = Math.round(pct * 100);
   if (rounded < 20 || rounded > 80) return null;
   return `${team.shortName} ${rounded}% to win`;
+}
+
+export function gameCardContext(game: Game, label: string, priority: AlertPriority): GameCardContext {
+  return {
+    kind: 'game',
+    priority,
+    awayTeam: game.awayTeam,
+    homeTeam: game.homeTeam,
+    period: game.period,
+    clock: game.clock,
+    status: game.status,
+    label,
+  };
+}
+
+export function playerCardContext(
+  player: PlayerStats,
+  team: Team,
+  statLine: string,
+  game: Game,
+  priority: AlertPriority,
+): PlayerCardContext {
+  return {
+    kind: 'player',
+    priority,
+    playerName: player.playerName,
+    teamName: team.name,
+    statLine,
+    awayTeam: game.awayTeam,
+    homeTeam: game.homeTeam,
+    period: game.period,
+    clock: game.clock,
+    status: game.status,
+  };
 }
 
 const STAT_KEYS: Array<{ key: keyof PlayerStats; label: string }> = [

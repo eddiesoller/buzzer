@@ -1,6 +1,6 @@
 import { Game, isLive } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore, otLabel } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, otLabel, gameCardContext } from './rule.js';
 
 export class OvertimeRule implements AlertRule {
   readonly name = 'overtime';
@@ -20,6 +20,7 @@ export class OvertimeRule implements AlertRule {
         body: score,
         priority: 'high',
         createdAt: new Date(),
+        context: gameCardContext(game, label, 'high'),
       }];
     }
 

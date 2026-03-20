@@ -1,6 +1,6 @@
 import { Game, estimateSecondsRemaining, getPlayerTeam } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, TIME_GATE_SECONDS, countAtOrAbove } from './rule.js';
+import { AlertRule, makeAlertId, TIME_GATE_SECONDS, countAtOrAbove, playerCardContext } from './rule.js';
 
 const THRESHOLD = 5;
 
@@ -24,6 +24,7 @@ export class FiveByFiveRule implements AlertRule {
       const team = getPlayerTeam(game, player);
 
       if (countAtOrAbove(cats, THRESHOLD) === 5) {
+        const cardStatLine = `${pts} PTS  ${reb} REB  ${ast} AST  ${stl} STL  ${blk} BLK`;
         alerts.push({
           id: makeAlertId(this.name, game.id, player.playerId),
           rule: this.name,
@@ -32,6 +33,7 @@ export class FiveByFiveRule implements AlertRule {
           body: `${team.abbreviation} | ${game.clock}`,
           priority: 'high',
           createdAt: new Date(),
+          context: playerCardContext(player, team, cardStatLine, game, 'high'),
         });
         continue;
       }
@@ -43,6 +45,7 @@ export class FiveByFiveRule implements AlertRule {
           if (v >= THRESHOLD - 1) nearFive++;
         }
         if (atFive >= 4 && nearFive >= 5) {
+          const cardStatLine = `${pts} PTS  ${reb} REB  ${ast} AST  ${stl} STL  ${blk} BLK`;
           alerts.push({
             id: makeAlertId(`${this.name}-approaching`, game.id, player.playerId),
             rule: this.name,
@@ -51,6 +54,7 @@ export class FiveByFiveRule implements AlertRule {
             body: `${team.abbreviation} | pts/reb/ast/stl/blk | ${game.clock} remaining`,
             priority: 'medium',
             createdAt: new Date(),
+            context: playerCardContext(player, team, cardStatLine, game, 'medium'),
           });
         }
       }
