@@ -11,6 +11,7 @@ import { MultiDoubleRule } from './multi-double.js';
 import { FiveByFiveRule } from './five-by-five.js';
 import { GooseEggRule } from './goose-egg.js';
 import { BigShotRule } from './big-shot.js';
+import { PlayerGameSummaryRule } from './player-game-summary.js';
 
 export const SCOREBOARD_RULES: AlertRule[] = [
   new CloseGameRule(),
@@ -26,6 +27,7 @@ export const BOX_SCORE_RULES: AlertRule[] = [
   new MultiDoubleRule(),
   new FiveByFiveRule(),
   new GooseEggRule(),
+  new PlayerGameSummaryRule(),
 ];
 
 export const PLAY_RULES: PlayRule[] = [new BigShotRule()];
