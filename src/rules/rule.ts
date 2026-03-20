@@ -28,6 +28,14 @@ export function otLabel(period: number): string {
   return period === 3 ? 'OT' : `${period - 2}OT`;
 }
 
+/** "1st Half", "2nd Half", "Halftime", "OT", "2OT", etc. */
+export function gamePeriodLabel(period: number, halftime?: boolean): string {
+  if (halftime) return 'Halftime';
+  if (period === 1) return '1st Half';
+  if (period === 2) return '2nd Half';
+  return otLabel(period);
+}
+
 /** "AWAY 75, HOME 72" */
 export function formatScore(away: Team, home: Team): string {
   return `${away.abbreviation} ${away.score}, ${home.abbreviation} ${home.score}`;

@@ -1,6 +1,6 @@
 import { Game, Play, isLive, isFinished } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore, gameCardContext } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, gameCardContext, gamePeriodLabel } from './rule.js';
 
 const RUN_THRESHOLD = 15;
 
@@ -22,7 +22,7 @@ export class ScoringRunRule implements AlertRule {
         rule: this.name,
         gameId: game.id,
         headline: `${game.homeTeam.shortName} on a ${homeRun}-0 scoring run!`,
-        body: `${score} | ${game.clock}`,
+        body: `${score} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock}`,
         priority: 'medium',
         createdAt: new Date(),
         context: gameCardContext(game, 'SCORING RUN', 'medium'),
@@ -35,7 +35,7 @@ export class ScoringRunRule implements AlertRule {
         rule: this.name,
         gameId: game.id,
         headline: `${game.awayTeam.shortName} on a ${awayRun}-0 scoring run!`,
-        body: `${score} | ${game.clock}`,
+        body: `${score} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock}`,
         priority: 'medium',
         createdAt: new Date(),
         context: gameCardContext(game, 'SCORING RUN', 'medium'),

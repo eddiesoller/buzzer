@@ -24,6 +24,7 @@ describe('ScoringRunRule', () => {
     expect(alerts).toHaveLength(1);
     expect(alerts[0]!.id).toContain('home');
     expect(alerts[0]!.headline).toContain('17-0');
+    expect(alerts[0]!.body).toBe('AWY 10, HME 17 | 2nd Half | 10:00');
   });
 
   it('fires when away team goes on 15-0 run', () => {

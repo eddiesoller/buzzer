@@ -1,6 +1,6 @@
 import { Game } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, findMultiDoubleCandidates, playerCardContext, countAtOrAbove, ACHIEVED_THRESHOLD, APPROACHING_THRESHOLD } from './rule.js';
+import { AlertRule, makeAlertId, findMultiDoubleCandidates, playerCardContext, countAtOrAbove, ACHIEVED_THRESHOLD, APPROACHING_THRESHOLD, formatScore, gamePeriodLabel } from './rule.js';
 
 export class MultiDoubleRule implements AlertRule {
   readonly name = 'multi-double';
@@ -39,7 +39,7 @@ export class MultiDoubleRule implements AlertRule {
           rule: this.name,
           gameId: game.id,
           headline: `${headline} (${statStr})`,
-          body: `${team.abbreviation} | ${game.clock}`,
+          body: `${formatScore(game.awayTeam, game.homeTeam)} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock}`,
           priority,
           createdAt: new Date(),
           context: playerCardContext(player, team, cardStatLine, game, priority),
@@ -67,7 +67,7 @@ export class MultiDoubleRule implements AlertRule {
           rule: this.name,
           gameId: game.id,
           headline: `${player.playerName} approaching ${label} (${statStr})`,
-          body: `${team.abbreviation} | ${game.clock} remaining`,
+          body: `${formatScore(game.awayTeam, game.homeTeam)} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock} remaining`,
           priority: 'medium',
           createdAt: new Date(),
           context: playerCardContext(player, team, cardStatLine, game, 'medium'),

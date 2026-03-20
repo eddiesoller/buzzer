@@ -15,6 +15,13 @@ describe('MultiDoubleRule', () => {
       expect(alerts[0]!.priority).toBe('medium');
     });
 
+    it('body includes score, period, and clock', () => {
+      const player = makePlayer({ playerId: 'p1', points: 15, rebounds: 10 });
+      const game = makeGame({ players: [player] });
+      const alerts = rule.evaluate(game);
+      expect(alerts[0]!.body).toBe('AWAY 45, HOME 50 | 2nd Half | 10:00');
+    });
+
     it('does not fire a double-double approaching alert', () => {
       const player = makePlayer({ playerId: 'p1', points: 9, rebounds: 8, assists: 3 });
       const game = makeGame({ clockSeconds: 100, players: [player] });
@@ -47,6 +54,13 @@ describe('MultiDoubleRule', () => {
       const alerts = rule.evaluate(game);
       expect(alerts).toHaveLength(1);
       expect(alerts[0]!.id).toBe('triple-double-approaching:game1:p1');
+    });
+
+    it('approaching body includes score, period, clock, and "remaining"', () => {
+      const player = makePlayer({ playerId: 'p1', points: 8, rebounds: 9, assists: 8 });
+      const game = makeGame({ clockSeconds: 100, players: [player] });
+      const alerts = rule.evaluate(game);
+      expect(alerts[0]!.body).toBe('AWAY 45, HOME 50 | 2nd Half | 10:00 remaining');
     });
 
     it('does not fire approaching with > 3 min remaining', () => {

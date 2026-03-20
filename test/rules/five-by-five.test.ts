@@ -14,12 +14,26 @@ describe('FiveByFiveRule', () => {
     expect(alerts[0]!.priority).toBe('high');
   });
 
+  it('body includes score, period, and clock', () => {
+    const player = makePlayer({ playerId: 'p1', points: 6, rebounds: 5, assists: 5, steals: 5, blocks: 5 });
+    const game = makeGame({ players: [player] });
+    const alerts = rule.evaluate(game);
+    expect(alerts[0]!.body).toBe('AWAY 45, HOME 50 | 2nd Half | 10:00');
+  });
+
   it('fires approaching when 4 cats are at 5+ and all are at 4+ with < 3 min left', () => {
     const player = makePlayer({ playerId: 'p1', points: 5, rebounds: 5, assists: 5, steals: 5, blocks: 4 });
     const game = makeGame({ clockSeconds: 100, players: [player] });
     const alerts = rule.evaluate(game);
     expect(alerts).toHaveLength(1);
     expect(alerts[0]!.id).toBe('five-by-five-approaching:game1:p1');
+  });
+
+  it('approaching body includes score, stat labels, period, clock, and "remaining"', () => {
+    const player = makePlayer({ playerId: 'p1', points: 5, rebounds: 5, assists: 5, steals: 5, blocks: 4 });
+    const game = makeGame({ clockSeconds: 100, players: [player] });
+    const alerts = rule.evaluate(game);
+    expect(alerts[0]!.body).toBe('AWAY 45, HOME 50 | pts/reb/ast/stl/blk | 2nd Half | 10:00 remaining');
   });
 
   it('does not fire approaching when not all cats are at 4+', () => {

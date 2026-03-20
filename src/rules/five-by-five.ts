@@ -1,6 +1,6 @@
 import { Game, estimateSecondsRemaining, getPlayerTeam } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, TIME_GATE_SECONDS, countAtOrAbove, playerCardContext } from './rule.js';
+import { AlertRule, makeAlertId, TIME_GATE_SECONDS, countAtOrAbove, playerCardContext, formatScore, gamePeriodLabel } from './rule.js';
 
 const THRESHOLD = 5;
 
@@ -30,7 +30,7 @@ export class FiveByFiveRule implements AlertRule {
           rule: this.name,
           gameId: game.id,
           headline: `5x5: ${player.playerName}! (${pts}pts/${reb}reb/${ast}ast/${stl}stl/${blk}blk)`,
-          body: `${team.abbreviation} | ${game.clock}`,
+          body: `${formatScore(game.awayTeam, game.homeTeam)} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock}`,
           priority: 'high',
           createdAt: new Date(),
           context: playerCardContext(player, team, cardStatLine, game, 'high'),
@@ -51,7 +51,7 @@ export class FiveByFiveRule implements AlertRule {
             rule: this.name,
             gameId: game.id,
             headline: `${player.playerName} chasing a 5x5! (${pts}/${reb}/${ast}/${stl}/${blk})`,
-            body: `${team.abbreviation} | pts/reb/ast/stl/blk | ${game.clock} remaining`,
+            body: `${formatScore(game.awayTeam, game.homeTeam)} | pts/reb/ast/stl/blk | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock} remaining`,
             priority: 'medium',
             createdAt: new Date(),
             context: playerCardContext(player, team, cardStatLine, game, 'medium'),

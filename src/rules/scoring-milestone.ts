@@ -1,6 +1,6 @@
 import { Game, getPlayerTeam } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, playerCardContext } from './rule.js';
+import { AlertRule, makeAlertId, playerCardContext, formatScore, gamePeriodLabel } from './rule.js';
 
 const MIN_MILESTONE = 30;
 const MILESTONE_STEP = 10;
@@ -29,7 +29,7 @@ export class ScoringMilestoneRule implements AlertRule {
         rule: this.name,
         gameId: game.id,
         headline: `${player.playerName} hits ${achieved}+ points! (${player.points} pts)`,
-        body: `${team.abbreviation} | ${game.clock} | FG: ${player.fieldGoalsMade}/${player.fieldGoalsAttempted}`,
+        body: `${formatScore(game.awayTeam, game.homeTeam)} | ${gamePeriodLabel(game.period, game.halftime)} | ${game.clock} | FG: ${player.fieldGoalsMade}/${player.fieldGoalsAttempted}`,
         priority,
         createdAt: new Date(),
         context: playerCardContext(player, team, `${player.points} PTS`, game, priority),

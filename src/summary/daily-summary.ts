@@ -202,6 +202,7 @@ export async function postDailySummary(
       rule: 'daily-summary',
       gameId: firstGameId,
       headline: `Daily summary for ${date}`,
+      body: `Daily summary for ${date}`,
       priority: 'low',
       createdAt: new Date(),
     });
