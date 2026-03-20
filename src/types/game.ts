@@ -6,6 +6,7 @@ export interface Team {
   seed?: number;
   score: number;
   record?: string;
+  logo?: string;
 }
 
 export interface PlayerStats {

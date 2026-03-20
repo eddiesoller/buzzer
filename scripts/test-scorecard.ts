@@ -3,10 +3,10 @@ import { generateScoreCard } from '../src/formatters/score-card.js';
 import { GameCardContext, PlayerCardContext, PlayCardContext } from '../src/types/score-card.js';
 import { Team } from '../src/types/game.js';
 
-const duke: Team    = { id: '1', name: 'Duke', shortName: 'Duke', abbreviation: 'DUKE', seed: 2, score: 74, record: '31-4' };
-const carolina: Team = { id: '2', name: 'North Carolina', shortName: 'UNC', abbreviation: 'UNC', seed: 7, score: 71, record: '26-10' };
-const kansas: Team  = { id: '3', name: 'Kansas', shortName: 'Kansas', abbreviation: 'KU', seed: 1, score: 79, record: '33-2' };
-const houston: Team = { id: '4', name: 'Houston', shortName: 'Houston', abbreviation: 'HOU', seed: 3, score: 82, record: '30-5' };
+const duke: Team    = { id: '150', name: 'Duke', shortName: 'Duke', abbreviation: 'DUKE', seed: 2, score: 74, record: '31-4', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/150.png' };
+const carolina: Team = { id: '153', name: 'North Carolina', shortName: 'UNC', abbreviation: 'UNC', seed: 7, score: 71, record: '26-10', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/153.png' };
+const kansas: Team  = { id: '2305', name: 'Kansas', shortName: 'Kansas', abbreviation: 'KU', seed: 1, score: 79, record: '33-2', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/2305.png' };
+const houston: Team = { id: '248', name: 'Houston', shortName: 'Houston', abbreviation: 'HOU', seed: 3, score: 82, record: '30-5', logo: 'https://a.espncdn.com/i/teamlogos/ncaa/500/248.png' };
 
 async function write(name: string, buf: Buffer) {
   const path = `/tmp/scorecard-${name}.png`;
@@ -36,6 +36,7 @@ async function main() {
     kind: 'player', priority: 'high',
     playerName: 'Armando Bacot',
     teamName: 'North Carolina',
+    playerTeam: carolina,
     statLine: '35 PTS  12 REB  7 AST',
     awayTeam: carolina, homeTeam: duke,
     period: 2, clock: '5:10', status: 'in',

@@ -15,6 +15,7 @@ const espnScoreboardSchema = z.object({
           displayName: z.string(),
           shortDisplayName: z.string(),
           abbreviation: z.string(),
+          logo: z.string().optional(),
         }),
         records: z.array(z.object({
           type: z.string().optional(),
@@ -96,5 +97,6 @@ function parseTeam(competitor: EspnCompetitor): Team {
     seed,
     score: parseInt(competitor.score, 10) || 0,
     record,
+    logo: competitor.team.logo,
   };
 }
