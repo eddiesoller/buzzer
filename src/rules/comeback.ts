@@ -1,6 +1,6 @@
 import { Game, isLive, isFinished } from '../types/game.js';
 import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore } from './rule.js';
+import { AlertRule, makeAlertId, formatScore, formatWinPct } from './rule.js';
 
 const COMEBACK_DEFICIT = 15;
 
@@ -32,12 +32,16 @@ export class ComebackRule implements AlertRule {
       // score (scores only go up). If violated, plays data is inconsistent with
       // the scoreboard and the deficit reading is unreliable.
       if (maxDeficit >= COMEBACK_DEFICIT && teamNow > oppNow && oppScoreAtPeak <= oppNow) {
+        const winPctStr = formatWinPct(game, team);
+        const body = winPctStr
+          ? `${formatScore(game.awayTeam, game.homeTeam)} | ${game.clock} | ${winPctStr}`
+          : `${formatScore(game.awayTeam, game.homeTeam)} | ${game.clock}`;
         return [{
           id: makeAlertId(this.name, game.id, team.id),
           rule: this.name,
           gameId: game.id,
           headline: `Comeback! ${team.shortName} erases ${maxDeficit}-point deficit and takes the lead!`,
-          body: `${formatScore(game.awayTeam, game.homeTeam)} | ${game.clock}`,
+          body,
           priority: 'high',
           createdAt: new Date(),
         }];

@@ -32,6 +32,18 @@ export function formatScore(away: Team, home: Team): string {
   return `${away.abbreviation} ${away.score}, ${home.abbreviation} ${home.score}`;
 }
 
+/**
+ * Returns a formatted win probability string for a team, e.g. "Duke 68% to win".
+ * Returns null if probability is unavailable or outside the informative range (20–80%).
+ */
+export function formatWinPct(game: Game, team: Team): string | null {
+  const pct = team.id === game.homeTeam.id ? game.homeWinPct : game.awayWinPct;
+  if (pct === undefined) return null;
+  const rounded = Math.round(pct * 100);
+  if (rounded < 20 || rounded > 80) return null;
+  return `${team.shortName} ${rounded}% to win`;
+}
+
 const STAT_KEYS: Array<{ key: keyof PlayerStats; label: string }> = [
   { key: 'points',   label: 'pts' },
   { key: 'rebounds', label: 'reb' },

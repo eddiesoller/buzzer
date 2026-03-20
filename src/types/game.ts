@@ -63,6 +63,10 @@ export interface Game {
   plays?: Play[];
   /** Sequence number of last processed play — used to avoid re-processing plays across polls */
   lastProcessedSeq?: number;
+  /** Win probability for home team (0–1), from ESPN scoreboard. Absent if not provided. */
+  homeWinPct?: number;
+  /** Win probability for away team (0–1), from ESPN scoreboard. Absent if not provided. */
+  awayWinPct?: number;
   startTime: string;
   venue?: string;
 }

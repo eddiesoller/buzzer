@@ -1,6 +1,6 @@
-import { Game, margin, estimateSecondsRemaining, isLive } from '../types/game.js';
-import { Alert } from '../types/alert.js';
-import { AlertRule, makeAlertId, formatScore } from './rule.js';
+import { Game, margin, estimateSecondsRemaining, isLive, leadingTeam } from '../types/game.js';
+import { Alert, AlertPriority } from '../types/alert.js';
+import { AlertRule, makeAlertId, formatScore, formatWinPct } from './rule.js';
 
 const CLOSE_GAME_MARGIN = 5;
 const CLOSE_GAME_SECONDS_REMAINING = 5 * 60;
@@ -24,13 +24,32 @@ export class CloseGameRule implements AlertRule {
       ? `TIED GAME with ${minutesLeft}m left — ${scoreStr}`
       : `Close game! ${minutesLeft}m left — ${scoreStr}`;
 
+    const leader = leadingTeam(game);
+    const leaderWinPct = leader !== null
+      ? (leader.id === game.homeTeam.id ? game.homeWinPct : game.awayWinPct)
+      : undefined;
+
+    let priority: AlertPriority;
+    if (diff === 0) {
+      priority = 'high';
+    } else if (leaderWinPct !== undefined) {
+      priority = leaderWinPct > 0.65 ? 'medium' : 'high';
+    } else {
+      priority = 'medium';
+    }
+
+    const winPctStr = leader !== null ? formatWinPct(game, leader) : null;
+    const body = winPctStr
+      ? `${game.awayTeam.name} vs ${game.homeTeam.name} | ${game.clock} - 2nd Half | ${winPctStr}`
+      : `${game.awayTeam.name} vs ${game.homeTeam.name} | ${game.clock} - 2nd Half`;
+
     return [{
       id: makeAlertId(this.name, game.id),
       rule: this.name,
       gameId: game.id,
       headline,
-      body: `${game.awayTeam.name} vs ${game.homeTeam.name} | ${game.clock} - 2nd Half`,
-      priority: diff === 0 ? 'high' : 'medium',
+      body,
+      priority,
       createdAt: new Date(),
     }];
   }

@@ -37,6 +37,15 @@ export interface EspnCompetition {
   status: EspnEventStatus;
   venue?: EspnVenue;
   broadcasts?: EspnBroadcast[];
+  situation?: {
+    lastPlay?: {
+      probability?: {
+        homeWinPercentage: number;
+        awayWinPercentage: number;
+        tiePercentage: number;
+      };
+    };
+  };
 }
 
 export interface EspnCompetitor {

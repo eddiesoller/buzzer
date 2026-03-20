@@ -34,6 +34,14 @@ const espnScoreboardSchema = z.object({
         fullName: z.string(),
         city: z.string().optional(),
       }).optional(),
+      situation: z.object({
+        lastPlay: z.object({
+          probability: z.object({
+            homeWinPercentage: z.number(),
+            awayWinPercentage: z.number(),
+          }).optional(),
+        }).optional(),
+      }).optional(),
     })),
   })),
 });
@@ -67,6 +75,8 @@ export function parseScoreboard(response: EspnScoreboardResponse): Game[] {
         venue: competition.venue
           ? `${competition.venue.fullName}, ${competition.venue.city}`
           : undefined,
+        homeWinPct: competition.situation?.lastPlay?.probability?.homeWinPercentage,
+        awayWinPct: competition.situation?.lastPlay?.probability?.awayWinPercentage,
       };
       return [game];
     });
