@@ -16,10 +16,19 @@ export class UpsetBrewingRule implements AlertRule {
     if (!isUnderdogLeading) return [];
 
     if (!isLive(game)) return [];
-    if (estimateSecondsRemaining(game) > 600) return [];
 
     const underdogWinPct = higherSeed.id === game.homeTeam.id ? game.homeWinPct : game.awayWinPct;
-    if (underdogWinPct !== undefined && underdogWinPct < 0.35) return [];
+    const secondsLeft = estimateSecondsRemaining(game);
+
+    if (underdogWinPct === undefined) {
+      if (secondsLeft > 600) return [];
+    } else if (underdogWinPct >= 0.50) {
+      if (secondsLeft > 1200) return [];
+    } else if (underdogWinPct >= 0.35) {
+      if (secondsLeft > 600) return [];
+    } else {
+      return [];
+    }
 
     const score = formatScore(game.awayTeam, game.homeTeam);
     const underdogPctStr = underdogWinPct !== undefined
