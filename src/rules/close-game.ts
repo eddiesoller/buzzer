@@ -20,9 +20,6 @@ export class CloseGameRule implements AlertRule {
 
     const minutesLeft = Math.ceil(remaining / 60);
     const scoreStr = formatScore(game.awayTeam, game.homeTeam);
-    const headline = diff === 0
-      ? `TIED GAME with ${minutesLeft}m left — ${scoreStr}`
-      : `Close game! ${minutesLeft}m left — ${scoreStr}`;
 
     const leader = leadingTeam(game);
     const leaderWinPct = leader !== null
@@ -38,11 +35,20 @@ export class CloseGameRule implements AlertRule {
       priority = 'medium';
     }
 
-    const winPctStr = leader !== null ? formatWinPct(game, leader) : null;
+    const homeWinPct = game.homeWinPct ?? 0.5;
+    const awayWinPct = game.awayWinPct ?? 0.5;
+    const favoredTeam = homeWinPct >= awayWinPct ? game.homeTeam : game.awayTeam;
+    const winPctStr = formatWinPct(game, favoredTeam);
+
+    const baseHeadline = diff === 0
+      ? `TIED GAME with ${minutesLeft}m left — ${scoreStr}`
+      : `Close game! ${minutesLeft}m left — ${scoreStr}`;
+    const headline = winPctStr ? `${baseHeadline} | ${winPctStr}` : baseHeadline;
+    const bodyWinPctStr = leader !== null ? formatWinPct(game, leader) : null;
     const awayLabel = game.awayTeam.seed != null ? `(${game.awayTeam.seed}) ${game.awayTeam.shortName}` : game.awayTeam.shortName;
     const homeLabel = game.homeTeam.seed != null ? `(${game.homeTeam.seed}) ${game.homeTeam.shortName}` : game.homeTeam.shortName;
-    const body = winPctStr
-      ? `${awayLabel} vs ${homeLabel} | ${game.clock} - 2nd Half | ${winPctStr}`
+    const body = bodyWinPctStr
+      ? `${awayLabel} vs ${homeLabel} | ${game.clock} - 2nd Half | ${bodyWinPctStr}`
       : `${awayLabel} vs ${homeLabel} | ${game.clock} - 2nd Half`;
 
     return [{

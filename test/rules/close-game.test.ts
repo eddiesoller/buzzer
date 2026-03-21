@@ -51,4 +51,30 @@ describe('CloseGameRule', () => {
       awayTeam: { ...makeGame().awayTeam, score: 81 } });
     expect(rule.evaluate(game)).toHaveLength(0);
   });
+
+  it('includes win pct in headline when tied and win probability is set', () => {
+    const game = makeGame({
+      period: 2, clockSeconds: 120,
+      homeTeam: { ...makeGame().homeTeam, score: 65 },
+      awayTeam: { ...makeGame().awayTeam, score: 65 },
+      homeWinPct: 0.62,
+      awayWinPct: 0.38,
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts[0]!.headline).toContain('% to win');
+    expect(alerts[0]!.headline).toContain('TIED GAME');
+  });
+
+  it('includes win pct in headline for non-tied close game', () => {
+    const game = makeGame({
+      period: 2, clockSeconds: 120,
+      homeTeam: { ...makeGame().homeTeam, score: 67 },
+      awayTeam: { ...makeGame().awayTeam, score: 65 },
+      homeWinPct: 0.58,
+      awayWinPct: 0.42,
+    });
+    const alerts = rule.evaluate(game);
+    expect(alerts[0]!.headline).toContain('% to win');
+    expect(alerts[0]!.headline).toContain('Close game!');
+  });
 });
