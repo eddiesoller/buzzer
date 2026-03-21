@@ -305,14 +305,15 @@ function buildPlaySvg(ctx: PlayCardContext, logos: { away: string | null; home: 
   const awayLeads = awayScore > homeScore;
   const homeLeads = homeScore > awayScore;
 
-  const awayY = playerName ? 272 : 238;
-  const divY  = playerName ? 368 : 342;
-  const homeY = playerName ? 462 : 452;
+  const awayY = playerName ? 300 : 238;
+  const divY  = playerName ? 390 : 342;
+  const homeY = playerName ? 480 : 452;
 
   const awayDisplay: Team = { ...awayTeam, score: awayScore };
   const homeDisplay: Team = { ...homeTeam, score: homeScore };
 
-  const playerFontSize = playerName && playerName.length > 20 ? 36 : 44;
+  const playerFontSize = playerName && playerName.length > 20 ? 56 : 68;
+  const playerUnderlineY = 180;
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}">
     ${defs(accent)}
@@ -321,8 +322,11 @@ function buildPlaySvg(ctx: PlayCardContext, logos: { away: string | null; home: 
 
     ${labelPill(label, accent, priority)}
 
-    ${playerName ? `<text x="${W / 2}" y="158" font-family="Noto Sans, sans-serif" font-size="${playerFontSize}" font-weight="600"
-      fill="${LIGHT}" text-anchor="middle" dominant-baseline="middle">${esc(playerName)}</text>` : ''}
+    ${playerName ? `
+    <text x="${W / 2}" y="158" font-family="Noto Sans, sans-serif" font-size="${playerFontSize}" font-weight="800"
+      fill="${WHITE}" text-anchor="middle" dominant-baseline="middle">${esc(playerName)}</text>
+    <rect x="${W / 2 - 120}" y="${playerUnderlineY}" width="240" height="5" rx="2.5" fill="${accent}"/>
+    ` : ''}
 
     ${teamRow(awayDisplay, awayScore, awayY, awayLeads, accent, logos.away, 'away')}
     ${gradientDivider(divY)}

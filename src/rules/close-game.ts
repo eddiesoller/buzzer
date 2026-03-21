@@ -39,9 +39,11 @@ export class CloseGameRule implements AlertRule {
     }
 
     const winPctStr = leader !== null ? formatWinPct(game, leader) : null;
+    const awayLabel = game.awayTeam.seed != null ? `(${game.awayTeam.seed}) ${game.awayTeam.shortName}` : game.awayTeam.shortName;
+    const homeLabel = game.homeTeam.seed != null ? `(${game.homeTeam.seed}) ${game.homeTeam.shortName}` : game.homeTeam.shortName;
     const body = winPctStr
-      ? `${game.awayTeam.name} vs ${game.homeTeam.name} | ${game.clock} - 2nd Half | ${winPctStr}`
-      : `${game.awayTeam.name} vs ${game.homeTeam.name} | ${game.clock} - 2nd Half`;
+      ? `${awayLabel} vs ${homeLabel} | ${game.clock} - 2nd Half | ${winPctStr}`
+      : `${awayLabel} vs ${homeLabel} | ${game.clock} - 2nd Half`;
 
     return [{
       id: makeAlertId(this.name, game.id),

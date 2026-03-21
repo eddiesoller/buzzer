@@ -19,7 +19,14 @@ function findScoringTeam(play: Play, game: Game): Team | null {
 
 function findScoringPlayer(play: Play, game: Game): PlayerStats | null {
   const teamPlayers = (game.players ?? []).filter((p) => p.teamId === play.teamId);
-  return teamPlayers.find((p) => play.text.includes(p.playerName)) ?? null;
+  return (
+    teamPlayers.find((p) => play.text.includes(p.playerName)) ??
+    teamPlayers.find((p) => {
+      const lastName = p.playerName.split(' ').at(-1) ?? '';
+      return lastName.length > 2 && play.text.includes(lastName);
+    }) ??
+    null
+  );
 }
 
 export class BigShotRule implements PlayRule {
@@ -93,7 +100,7 @@ export class BigShotRule implements PlayRule {
     let cardLabel: string;
     if (isBuzzerBeater && isLongRange) {
       shotDesc = `${distanceFt}-foot buzzer beater!`;
-      cardLabel = 'BUZZER BEATER';
+      cardLabel = `BUZZER BEATER · ${distanceFt} FT`;
     } else if (isBuzzerBeater) {
       shotDesc = 'Buzzer beater!';
       cardLabel = 'BUZZER BEATER';
@@ -105,12 +112,14 @@ export class BigShotRule implements PlayRule {
       cardLabel = 'GO-AHEAD SHOT';
     } else {
       shotDesc = `${distanceFt}-foot shot!`;
-      cardLabel = 'LONG RANGE';
+      cardLabel = `LONG RANGE · ${distanceFt} FT`;
     }
 
     const headline = `${playerPrefix}${shotDesc}`;
     const scoreStr = `${game.awayTeam.abbreviation} ${play.awayScore}, ${game.homeTeam.abbreviation} ${play.homeScore}`;
-    const teamPrefix = team ? `${team.abbreviation} | ` : '';
+    const teamPrefix = team
+      ? `${team.seed != null ? `(${team.seed}) ` : ''}${team.abbreviation} | `
+      : '';
 
     const context: PlayCardContext = {
       kind: 'play',

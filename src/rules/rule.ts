@@ -36,9 +36,11 @@ export function gamePeriodLabel(period: number, halftime?: boolean): string {
   return otLabel(period);
 }
 
-/** "AWAY 75, HOME 72" */
+/** "AWAY 75, HOME 72" — includes seed when available, e.g. "(7) UCLA 75, (2) Duke 72" */
 export function formatScore(away: Team, home: Team): string {
-  return `${away.abbreviation} ${away.score}, ${home.abbreviation} ${home.score}`;
+  const awayLabel = away.seed != null ? `(${away.seed}) ${away.abbreviation}` : away.abbreviation;
+  const homeLabel = home.seed != null ? `(${home.seed}) ${home.abbreviation}` : home.abbreviation;
+  return `${awayLabel} ${away.score}, ${homeLabel} ${home.score}`;
 }
 
 /**
